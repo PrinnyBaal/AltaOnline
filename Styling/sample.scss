@@ -1,0 +1,327 @@
+// $deepPurple: #292531;
+// $deepBlue:#445D7D;
+// $softBlue:#7F95AD;
+// $softOrange:#C1A782;
+// $deepOrange:#C7814A;
+
+$darkBack:#222831;
+$greyBack:#393e46;
+$flairColor:#d65a31;
+$lightBack:#eeeeee;
+
+$storeFont:"Monotype Corsiva";
+$talkFont:"Lucida Handwriting";
+$baseFont:"Verdana";
+
+$cellSize:250px;
+
+#shopBanner{
+  height:15vh;
+  background-color:$darkBack;
+  #bannerImage{
+    background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1541010545/Avatars/Higgsy/side_higgsMad.png");
+    background-size:100%  100%;
+    background-repeat:no-repeat;
+    border-radius:50%;
+    border:4px groove $greyBack;
+
+  }
+  #bannerTitle{
+  font-size:3.5em;
+  overflow:hidden;
+  font-family:$storeFont;
+  color:$flairColor;
+  }
+  #bannerTagline{
+    font-family:$talkFont;
+    color:$flairColor;
+  }
+}
+
+#gameRow{
+  // grid-template-columns: auto calc($cellSize*4) auto;
+  // grid-template-rows: auto calc($cellSize*4) auto;
+  // overflow:auto;
+  max-height:100vh;
+  min-height:1500px;
+  min-width:2000px;
+  max-width:100vw;
+  background-color:#097327;
+  background-image:url("https://fc00.deviantart.net/fs70/i/2012/309/f/9/tavern_bg_by_mrainbowwj-d5k1ezg.jpg");
+  background-size:cover;
+  position:relative;
+  overflow:auto;
+
+
+  #canvasContainer{
+    position:relative;
+    // margin:300px;
+    // top: 0; left: 0; bottom: 0; right: 0;
+    // margin:auto;
+
+    // height: calc(#{$cellSize} * 4);
+    // width:calc(#{$cellSize} * 4);
+    // grid-column-start: 2;
+    // grid-column-end: 3;
+    // grid-row-start: 2;
+    // grid-row-end: 3;
+    background: rgb(0,0,0);
+    background: linear-gradient(180deg, rgba(0,0,0,1) 25%, rgba(255,255,255,1) 75%);
+
+  }
+
+}
+
+#handsContainer{
+  position: absolute;
+  left: calc(#{$cellSize} * 6 + 100px);
+  height: calc(#{$cellSize} * 4);
+  width: 750px;
+  background-color: black;
+  top: $cellSize;
+  #playerZones{
+    // position:absolute;
+    // bottom:2vh; right:2vw;
+    // width:25vw;
+    // height:20vh;
+    width:100%;
+    height:25%;
+    // min-height:$cellSize;
+    // border:5px solid white;
+    #playerDiscard{
+      background-image:url("https://img.icons8.com/dusk/96/000000/poison.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+      background-size: contain;
+      background-repeat:no-repeat;
+    }
+    #playerDeck{
+      background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+      background-size: cover;
+    }
+    #playerCapture{
+      background-image:url("https://cdn.pixabay.com/photo/2016/01/26/03/11/cage-1161869_960_720.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png") ;
+      background-size: cover;
+    }
+  }
+  #boardButtonZone{
+    width:100%;
+    height:50%;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content: center;
+    align-items:center;
+  }
+  #enemyZones{
+    // position:absolute;
+    // width:25vw;
+    // height:20vh;
+    // top:2vh; right:2vw;
+    width:100%;
+    height:25%;
+    // min-height:$cellSize;
+    // border:5px solid red;
+    #enemyDiscard{
+      background-image:url("https://img.icons8.com/dusk/96/000000/poison.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png");
+      background-size: contain;
+      background-repeat:no-repeat;
+    }
+    #enemyDeck{
+      background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png");
+      background-size: cover;
+    }
+    #enemyCapture{
+      background-image: url("https://cdn.pixabay.com/photo/2016/01/26/03/11/cage-1161869_960_720.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+      background-size: cover;
+      background-repeat:no-repeat;
+
+    }
+  }
+}
+
+#discoverLayer{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-wrap:wrap;
+  overflow:auto;
+  background-color:rgba(0, 0, 0, 0.6);
+  z-index:5;
+  .discoverCard{
+    height:550px;
+    width:450px;
+    object-fit: fill;
+  }
+}
+
+#deckbuilderScreen{
+  position:fixed;
+  top:0;
+  left:0;
+  height:100vh;
+  width:100vw;
+  background-color:black;
+  z-index:10;
+  #deckTitle{
+    height:5%;
+    font-size:2em;
+    color:white;
+  }
+  #deckZone{
+    height:35%;
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content: center;
+    align-items:center;
+  }
+  // #filterZone{
+  //   position:absolute;
+  //   top:0;
+  //   left:0;
+  //   height:10%;
+  //   width:25%;
+  // }
+  #collectTitle{
+    height:5%;
+    font-size:2em;
+    color:white;
+  }
+  #collectionZone{
+    border-top:20px solid grey;
+    height:55%;
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content: center;
+    align-items:center;
+  }
+}
+#playerHandRow{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content: center;
+  align-items:center;
+  width:100%;
+  height:500px;
+  transition: height 1.5s;
+  overflow:auto;
+  background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1533578530/Backgrounds/ep_naturalblack.png");
+  background-size:cover;
+  // .cardInHand{
+  //   height:450px;
+  //   width:350px;
+  //   object-fit: fill;
+  //
+  // }
+}
+
+#discardZone{
+  position:fixed;
+  background-color:rgba(0, 0, 0, 0.4);
+  top:0;
+  left:0;
+  height:100%;
+  width:100%;
+  display:flex;
+  flex-wrap:wrap;
+  overflow:auto;
+
+  .discardedCard{
+    height:550px;
+    width:450px;
+    object-fit: fill;
+  }
+}
+
+#playerButtonsRow{
+  width:100%;
+  height:50px;
+  display:flex;
+  flex-wrap:wrap;
+  background-color:black;
+  align-items:center;
+  align-content:center;
+  justify-content: center;
+}
+
+#cardDisplay{
+  position:absolute;
+  top:10px;
+  left:10px;
+  #hoveredCard{
+    max-height:650px;
+    max-width:550px;
+    object-fit: fill;
+  }
+}
+
+#captureZone{
+  position:fixed;
+  background-color:rgba(0, 0, 0, 0.4);
+  top:0;
+  left:0;
+  height:100%;
+  width:100%;
+  display:flex;
+  flex-wrap:wrap;
+  overflow:auto;
+  .captiveCard{
+    height:550px;
+    width:450px;
+    object-fit: fill;
+  }
+}
+
+.hidden{
+  height:0 !important;
+  width:0 !important;
+  overflow:hidden !important;
+}
+
+.cardZone{
+  background-color:green;
+  height:100%;
+  width:100%;
+}
+
+.closeButton{
+  opacity:0;
+  position:absolute;
+  top:1px;
+  right:1px;
+  height:25px;
+  width:25px;
+  background-color:grey;
+  background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1548289539/icons8-delete-48.png");
+  background-size:contain;
+  background-repeat:no-repeat;
+  border:1px solid black;
+  transition:opacity .5s;
+  z-index:5;
+
+}
+
+.closableDiv:hover{
+  .closeButton{
+    opacity:1;
+  }
+}
+.closeButton:hover{
+  cursor:pointer;
+}
+
+.cardInHand{
+  height:450px;
+  width:350px;
+  object-fit: fill;
+
+}
+.hoverFlow{
+  overflow:hidden;
+}
+
+.hoverFlow:hover{
+  overflow:auto;
+}

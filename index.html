@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link rel="shortcut icon" href="">
+  <meta charset="UTF-8">
+  <title>Alta Online</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="Styling/sample.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+  <script src="src/model/cardLibrary.js"></script>
+  <script src="src/ctrl/initialize.js"></script>
+  <script src="src/model/sheetStats.js"></script>
+  <script src="src/view/sheetLogic.js"></script>
+
+  <script>
+   window.addEventListener( "load", sheetProj.view.sheetLogic.setupUserInterface);
+  </script>
+</head>
+
+<style>
+</style>
+<body>
+  <div id="deckbuilderScreen" class="hidden">
+    <div id="deckTitle">Your Deck (Click cards to remove) <button onclick="deckBuilder.exitDeckBuilder()"> Done Building</button></div>
+    <div id="deckZone" class="hoverFlow"></div>
+    <div id="collectTitle">Your Collection (Click cards to add to deck)</div>
+    <div id="collectionZone" class="hoverFlow"></div>
+  </div>
+  <div  class="container-fluid pt-2" id="shopBanner">
+    <div class="row  h-75" >
+      <div class="col-1 offset-1" id="bannerImage">
+
+      </div>
+      <div class="col my-auto" id="bannerTitle">
+        Higgsy's Hide-A-Way
+      </div>
+    </div>
+    <div class="row h-25">
+      <div class="offset-4 col-3" >
+        <p id="bannerTagline">"Wait, is this canon?"</p>
+      </div>
+    </div>
+
+  </div>
+  <div id="gameRow">
+    <div id="cardDisplay"><img id="hoveredCard"></img></div>
+    <div id="canvasContainer"></div>
+    <div id="handsContainer" class="container">
+
+      <div id="enemyZones" class="row">
+        <div id="enemyDiscard" data-allegiance="enemy" class="col-3 offset-1 cardZone discardDeck"></div>
+        <div id="enemyDeck" data-allegiance="enemy" class="col-3 offset-1 cardZone"></div>
+        <div id="enemyCapture" data-allegiance="enemy" class="col-3 offset-1 cardZone captureDeck"></div>
+      </div>
+      <div id="boardButtonZone" class="row">
+        <button onclick="gamePlay.playerConcede()" style="height:100px; width:100px; padding-right:5px; background-color:red;">Concede</button>
+        <button onclick="gamePlay.reset()" style="height:100px; width:100px; padding-right:5px; background-color:blue;">New Game</button>
+        <button onclick="gamePlay.flipForFirst()" style="height:100px; width:100px; padding-right:5px; background-color:yellow;">Flip For First</button>
+        <button onclick="deckBuilder.launchDeckBuilder()" style="height:100px; width:100px; padding-right:5px; background-color:purple;">End game and open Deckbuilder</button>
+      </div>
+      <div id="playerZones" class="row">
+        <div id="playerDiscard" data-allegiance="friendly" class="col-3 offset-1 cardZone discardDeck"></div>
+        <div id="playerDeck" data-allegiance="friendly" class="col-3 offset-1 cardZone"></div>
+        <div id="playerCapture" data-allegiance="friendly" class="col-3 offset-1 cardZone captureDeck"></div>
+      </div>
+    </div>
+
+  </div>
+  <div id="playerHandRow" class="hidden"></div>
+
+  <button onclick="resetStorage()">Reset To Default</button>
+  <!-- <div id="footer" style="background-color:brown" class="container-fluid">
+
+      <div class="row h-100 pb-4">
+        <div class="col" >
+          <br>
+          <p><b>Steven Sonson</b></p>
+          <hr>
+          <p><emsp>ssonson@alumni.nd.edu</p>
+          <p><emsp>Bridgport, Connecticut</p>
+          <hr>
+          <p><b>Other Higgsy DnD Tools</b></p>
+          <a href="https://prinnybaal.github.io/Higgsy-s-U-Craft/">Higgsy's U-Craft (Magic Item Cost Estimation)</a><br>
+          <a href="https://prinnybaal.github.io/Higgsy-sModularSheet/">Higgsy's Modular Character Sheet[Beta]</a>
+          <hr>
+
+        </div>
+        <div class="col" >
+          <br>
+          <p><b>Credits</b></p>
+          <hr>
+          <p><emsp>Armor Art Courtesy of Domigorgon:<a href="https://www.deviantart.com/domigorgon/art/Armor-Collection-746626202">Deviant Art</a>/<a href="https://www.patreon.com/posts/19030952">Patreon</a></p>
+          <p><emsp>Site Mascot Higgsy, originally sprite by: <a href="https://lemmasoft.renai.us/forums/viewtopic.php?f=52&t=48688&p=501514&hilit=female#p501514">GrammaHobbes</a></p>
+          <p><emsp>Default Card Template: <a href="https://www.reddit.com/r/DnD/comments/7c9hge/oc_really_proud_of_my_item_cards_bonus_template/">u/Bernalestomas</a></p>
+          <p><emsp>Site Background: <a href="https://www.toptal.com/designers/subtlepatterns/ep-natural-black/">EP Natural Black from Toptal Subtle Patterns</a></p>
+          <a href="https://icons8.com/icon/80339/delete">Delete icon by Icons8</a>
+
+
+
+        </div>
+      </div>
+  </div> -->
+  <div id="discardZone" class="hidden closableDiv"></div>
+  <div id="captureZone" class="hidden closableDiv"></div>
+</body>

@@ -1,0 +1,266 @@
+#shopBanner {
+  height: 15vh;
+  background-color: #222831;
+}
+#shopBanner #bannerImage {
+  background-image: url("https://res.cloudinary.com/metaverse/image/upload/v1541010545/Avatars/Higgsy/side_higgsMad.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  border: 4px groove #393e46;
+}
+#shopBanner #bannerTitle {
+  font-size: 3.5em;
+  overflow: hidden;
+  font-family: "Monotype Corsiva";
+  color: #d65a31;
+}
+#shopBanner #bannerTagline {
+  font-family: "Lucida Handwriting";
+  color: #d65a31;
+}
+
+#gameRow {
+  max-height: 100vh;
+  min-height: 1500px;
+  min-width: 2000px;
+  max-width: 100vw;
+  background-color: #097327;
+  background-image: url("https://fc00.deviantart.net/fs70/i/2012/309/f/9/tavern_bg_by_mrainbowwj-d5k1ezg.jpg");
+  background-size: cover;
+  position: relative;
+  overflow: auto;
+}
+#gameRow #canvasContainer {
+  position: relative;
+  background: black;
+  background: linear-gradient(180deg, black 25%, white 75%);
+}
+
+#handsContainer {
+  position: absolute;
+  left: calc(250px * 6 + 100px);
+  height: calc(250px * 4);
+  width: 750px;
+  background-color: black;
+  top: 250px;
+}
+#handsContainer #playerZones {
+  width: 100%;
+  height: 25%;
+}
+#handsContainer #playerZones #playerDiscard {
+  background-image: url("https://img.icons8.com/dusk/96/000000/poison.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#handsContainer #playerZones #playerDeck {
+  background-image: url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+  background-size: cover;
+}
+#handsContainer #playerZones #playerCapture {
+  background-image: url("https://cdn.pixabay.com/photo/2016/01/26/03/11/cage-1161869_960_720.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png");
+  background-size: cover;
+}
+#handsContainer #boardButtonZone {
+  width: 100%;
+  height: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+#handsContainer #enemyZones {
+  width: 100%;
+  height: 25%;
+}
+#handsContainer #enemyZones #enemyDiscard {
+  background-image: url("https://img.icons8.com/dusk/96/000000/poison.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#handsContainer #enemyZones #enemyDeck {
+  background-image: url("https://res.cloudinary.com/metaverse/image/upload/v1567881017/UI/card_back_purple.png");
+  background-size: cover;
+}
+#handsContainer #enemyZones #enemyCapture {
+  background-image: url("https://cdn.pixabay.com/photo/2016/01/26/03/11/cage-1161869_960_720.png"), url("https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+#discoverLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+#discoverLayer .discoverCard {
+  height: 550px;
+  width: 450px;
+  object-fit: fill;
+}
+
+#deckbuilderScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: black;
+  z-index: 10;
+}
+#deckbuilderScreen #deckTitle {
+  height: 5%;
+  font-size: 2em;
+  color: white;
+}
+#deckbuilderScreen #deckZone {
+  height: 35%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+#deckbuilderScreen #collectTitle {
+  height: 5%;
+  font-size: 2em;
+  color: white;
+}
+#deckbuilderScreen #collectionZone {
+  border-top: 20px solid grey;
+  height: 55%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+#playerHandRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 500px;
+  transition: height 1.5s;
+  overflow: auto;
+  background-image: url("https://res.cloudinary.com/metaverse/image/upload/v1533578530/Backgrounds/ep_naturalblack.png");
+  background-size: cover;
+}
+
+#discardZone {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.4);
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+}
+#discardZone .discardedCard {
+  height: 550px;
+  width: 450px;
+  object-fit: fill;
+}
+
+#playerButtonsRow {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: black;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+#cardDisplay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+#cardDisplay #hoveredCard {
+  max-height: 650px;
+  max-width: 550px;
+  object-fit: fill;
+}
+
+#captureZone {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.4);
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+}
+#captureZone .captiveCard {
+  height: 550px;
+  width: 450px;
+  object-fit: fill;
+}
+
+.hidden {
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
+.cardZone {
+  background-color: green;
+  height: 100%;
+  width: 100%;
+}
+
+.closeButton {
+  opacity: 0;
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  height: 25px;
+  width: 25px;
+  background-color: grey;
+  background-image: url("https://res.cloudinary.com/metaverse/image/upload/v1548289539/icons8-delete-48.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  border: 1px solid black;
+  transition: opacity 0.5s;
+  z-index: 5;
+}
+
+.closableDiv:hover .closeButton {
+  opacity: 1;
+}
+
+.closeButton:hover {
+  cursor: pointer;
+}
+
+.cardInHand {
+  height: 450px;
+  width: 350px;
+  object-fit: fill;
+}
+
+.hoverFlow {
+  overflow: hidden;
+}
+
+.hoverFlow:hover {
+  overflow: auto;
+}
+
+/*# sourceMappingURL=sample.css.map */
