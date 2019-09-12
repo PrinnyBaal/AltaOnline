@@ -28,6 +28,17 @@
     <div id="collectTitle">Your Collection (Click cards to add to deck)</div>
     <div id="collectionZone" class="hoverFlow"></div>
   </div>
+  <div id="higgsShop" class="hidden" >
+    <img id="shopPortrait" class="hFlip" src="https://res.cloudinary.com/metaverse/image/upload/v1568150577/Avatars/Higgsy/MC_Smile_eyes_opened.png"></img>
+    <div id="higgsTextBox" class="activeText">
+      <div id="higgsNamePlate" class="activeTag"><span>Higgs</span></div>
+
+    </div>
+    <div id="playerResponseBox" class="hiddenText">
+      <div id="playerNamePlate" class="inactiveTag"></div>
+    </div>
+
+  </div>
   <div  class="container-fluid pt-2" id="shopBanner">
     <div class="row  h-75" >
       <div class="col-1 offset-1" id="bannerImage">
@@ -46,31 +57,32 @@
   </div>
   <div id="gameRow">
     <div id="cardDisplay"><img id="hoveredCard"></img></div>
+    <div id="battleLog"></div>
     <div id="canvasContainer"></div>
     <div id="handsContainer" class="container">
 
       <div id="enemyZones" class="row">
-        <div id="enemyDiscard" data-allegiance="enemy" class="col-3 offset-1 cardZone discardDeck"></div>
+        <div id="enemyDiscard" data-allegiance="enemy" class="col-3 offset-1 cardZone discardDeck phasedOut"></div>
         <div id="enemyDeck" data-allegiance="enemy" class="col-3 offset-1 cardZone"></div>
-        <div id="enemyCapture" data-allegiance="enemy" class="col-3 offset-1 cardZone captureDeck"></div>
+        <div id="enemyCapture" data-allegiance="enemy" class="col-3 offset-1 cardZone captureDeck phasedOut"></div>
       </div>
       <div id="boardButtonZone" class="row">
-        <button onclick="gamePlay.playerConcede()" style="height:100px; width:100px; padding-right:5px; background-color:red;">Concede</button>
-        <button onclick="gamePlay.reset()" style="height:100px; width:100px; padding-right:5px; background-color:blue;">New Game</button>
-        <button onclick="gamePlay.flipForFirst()" style="height:100px; width:100px; padding-right:5px; background-color:yellow;">Flip For First</button>
-        <button onclick="deckBuilder.launchDeckBuilder()" style="height:100px; width:100px; padding-right:5px; background-color:purple;">End game and open Deckbuilder</button>
+        <button id="shopButton" class="iconButton" title="Go To Shop" onclick="shop.openShop()" style=""></button>
+        <button id="newGameButton" class="iconButton" title="Start A New Practice Game" onclick="gamePlay.reset()" style=""></button>
+        <button id="coinFlipButton" class="iconButton" title="Flip To See Who Goes First" onclick="gamePlay.flipForFirst()" style=""></button>
+        <button id="deckbuildButton" class="iconButton" title="Edit Deck" onclick="deckBuilder.launchDeckBuilder()" style=""></button>
       </div>
       <div id="playerZones" class="row">
-        <div id="playerDiscard" data-allegiance="friendly" class="col-3 offset-1 cardZone discardDeck"></div>
+        <div id="playerDiscard" data-allegiance="friendly" class="col-3 offset-1 cardZone discardDeck phasedOut"></div>
         <div id="playerDeck" data-allegiance="friendly" class="col-3 offset-1 cardZone"></div>
-        <div id="playerCapture" data-allegiance="friendly" class="col-3 offset-1 cardZone captureDeck"></div>
+        <div id="playerCapture" data-allegiance="friendly" class="col-3 offset-1 cardZone captureDeck phasedOut"></div>
       </div>
     </div>
 
   </div>
   <div id="playerHandRow" class="hidden"></div>
 
-  <button onclick="resetStorage()">Reset To Default</button>
+  <button  onclick="resetStorage()">Reset To Default</button>
   <!-- <div id="footer" style="background-color:brown" class="container-fluid">
 
       <div class="row h-100 pb-4">

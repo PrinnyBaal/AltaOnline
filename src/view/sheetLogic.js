@@ -3,6 +3,10 @@ sheetProj.view.sheetLogic = {
   setupUserInterface: function () {
     assetCache.fillCache();
     enableDragging();
+    eventHandler.announce("login");
+    if (data.sceneStats.activeScene=="firstMeet"){
+      shop.openShop();
+    }
     }
 };
 
@@ -48,11 +52,11 @@ let gameDisplay={
 
 
     display+=`<canvas id="gameBoardCards" width="${data.gridStats.size*4}" height="${data.gridStats.size*4}" style="position: absolute; margin:auto; left:0; right:0; bottom:0; top: 0; z-index: 0;"></canvas>`;
-
+    display+=`<canvas id="gameBoardTargetting" width="${data.gridStats.size*4}" height="${data.gridStats.size*4}" style="position: absolute; margin:auto; left:0; right:0; bottom:0; top: 0; z-index: 1;"></canvas>`;
 
 
     //the gridlayer helps simplify clicking, etc.
-    display+=`<canvas id="gridLayer"  width="${data.gridStats.size*4}" height="${data.gridStats.size*4}" style="position: absolute; margin:auto; left:0; right:0; bottom:0; top: 0; z-index: 1;"></canvas>`;
+    display+=`<canvas id="gridLayer"  width="${data.gridStats.size*4}" height="${data.gridStats.size*4}" style="position: absolute; margin:auto; left:0; right:0; bottom:0; top: 0; z-index: 2;"></canvas>`;
 
     //the discover Layer
     display+=`<div id="discoverLayer" class="hidden"></div>`
@@ -60,7 +64,7 @@ let gameDisplay={
     $("#canvasContainer").height(data.gridStats.size*4);
     $("#canvasContainer").width(data.gridStats.size*4);
     $("#canvasContainer").css("margin", data.gridStats.size);
-    $("#canvasContainer").css("margin-left", data.gridStats.size*2);
+    $("#canvasContainer").css("margin-left", data.gridStats.size*2.5);
     $("#gridLayer").on("click", gamePlay.clickBoard);
     // $("#gridLayer").on("mouseenter", gamePlay.hoverBoard);
     // $("#gridLayer").on("mouseleave", gamePlay.hoverBoard);
@@ -155,26 +159,23 @@ let gameDisplay={
         ctx.textBaseline = "middle";
         ctx.textAlign = "center";
 
-        //load images THEN draw images
 
         for (let i=0, len=obj.length; i<len; i++){
 
-          if (!obj[i].img){
+          if (!obj[i].img){continue;}
 
-            continue;
-          }
-
+            //rotate tapped cards
             if(obj[i].cardInfo.tags.includes("Tapped")){
               ctx.save();
               ctx.translate(obj[i].xPos+obj[i].width/2, obj[i].yPos+obj[i].height/2);
               ctx.rotate(Math.PI / 2);
               ctx.translate(-(obj[i].xPos+obj[i].width/2), -(obj[i].yPos+obj[i].height/2));}
-          // draw your object
 
+            //draw card to canvas, scaling/sizing original art
             ctx.drawImage(obj[i].img, 0, 0, obj[i].img.width,    obj[i].img.height*.7,
                           obj[i].xPos, obj[i].yPos,obj[i].width, obj[i].height);
 
-            //add ability charms
+            //add ability charms IF card is not facedown
             if(!obj[i].cardInfo.tags.includes("Illusion")){
               if (obj[i].cardInfo.abilitySlot1){
                 if(obj[i].cardInfo.abilitySlot1.type=="Passive"){
@@ -199,7 +200,7 @@ let gameDisplay={
               }
             }
 
-
+            //apply an effect to distinguish enemy cards
             if(!obj[i].friendly){
               var imgData = ctx.getImageData(obj[i].xPos, obj[i].yPos, obj[i].width, obj[i].height);
 
@@ -227,36 +228,142 @@ let gameDisplay={
             if(obj[i].cardInfo.tags.includes("Tapped")){
               ctx.restore();}
 
-          // else{
-          //
-            // var rgbks = generateRGBKs( obj[i].img );
-            // var tintImg = generateTintImage( obj[i].img, rgbks, 200, 50, 100 );
-          //
-          //
-          //   // ctx.fillStyle = "black";
-          //   // ctx.fillRect( 0, 0, 100, 100 );
-          //
-          //   // ctx.drawImage( tintImg, 50, 50 );
-          //   ctx.drawImage(tintImg, 0, 0, tintImg.width,    tintImg.height,
-          //                 obj[i].xPos, obj[i].yPos,obj[i].width, obj[i].height);
-          // }
+
 
 
 
 
         }
-
-
-
-
-
-
+        gameDisplay.setTargettingAid();
 
     }).catch(function(err) {
       console.log(err);
       console.log(assetCache.cache); // some coding error in handling happened
     });;
 
+
+  },
+  setTargettingAid:function(pregenHighlights){
+    let gamePhase=data.gamePhase;
+    let activeCell=data.activeCell;
+    let board=zones.gameBoard.board;
+    let highlights= pregenHighlights ? pregenHiglights:[]; //highlights are objects with a cell in which to make a pre-defined drawing {cell:{x:x, y:y}, effect:"effectName"}
+    let validMoves;
+    let validCaps;
+    let activeCard;
+
+    switch(gamePhase){
+
+      case "setup":
+        if (zones.p1Hand.heldCards.length){
+          for (let x=0; x<4; x++){
+            if (!board[3][x]){
+              highlights.push({cell:{y:3, x:x}, effect:"starterRowHighlight"});
+            }
+          }
+        }
+        break;
+
+      case "unitAction":
+        activeCard=board[activeCell.y][activeCell.x];
+        highlights.push({cell:activeCell, effect:"selectHighlight"});
+        validMoves=getValidMoves(board[activeCell.y][activeCell.x]);
+        validCaps=getValidCaps(board[activeCell.y][activeCell.x]);
+
+        validMoves.forEach((move)=>{
+          highlights.push({cell:move, effect:"moveHighlight"});
+        });
+
+        validCaps.forEach((cap)=>{
+          highlights.push({cell:cap, effect:"captureHighlight"});
+        });
+
+        if (activeCard.hasTap){
+          if (activeCard.abilitySlot1.type=="Tap"){
+            if (tapLibrary[activeCard.abilitySlot1.name].isValid.call(activeCard)){
+              highlights.push({cell:activeCell, effect:"tapAvailable"});
+            }
+          }else if (tapLibrary[activeCard.abilitySlot2.name].isValid.call(activeCard)){
+            highlights.push({cell:activeCell, effect:"tapAvailable"});
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    ///
+    let canvas = $(`#gameBoardTargetting`)[0];
+    let ctx = canvas.getContext('2d');
+    let cellSize=data.gridStats.size;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    highlights.forEach((highlight)=>{
+      console.log("applying highlight?");
+      effectLibrary[highlight.effect](ctx, highlight.cell);
+    })
+
+    function getValidCaps(card){
+      let caps=[];
+      card.captureRanges.forEach((range)=>{
+        if (isCaptureLegal(card, range)){
+          caps.push({x:card.position.x+range.x, y:card.position.y+range.y});
+        }
+      });
+      return caps;
+
+      function isCaptureLegal(unit, movement){
+        let pos=unit.position;
+        let board=zones.gameBoard.board;
+        try{
+          if (!board[pos.y+movement.y][pos.x+movement.x].friendly
+            && !board[pos.y+movement.y][pos.x+movement.x].tags.includes("Defended")
+            && !board[pos.y+movement.y][pos.x+movement.x].tags.includes("Unstoppable")){
+
+            return true;
+          }
+          else{
+
+            return false;
+          }
+        }catch(error){
+          return false;
+        }
+
+      }
+    }
+    function getValidMoves(card){
+      let moves=[];
+      card.moveRanges.forEach((range)=>{
+        if (isMoveLegal(card, range)){
+          moves.push({x:card.position.x+range.x, y:card.position.y+range.y});
+        }
+      });
+      return moves;
+
+      function isMoveLegal(unit, movement){
+        let board=zones.gameBoard.board;
+        let pos=unit.position;
+
+        try{
+          if (board[pos.y+movement.y][pos.x+movement.x]===false){
+            return true;
+          }
+          else{
+            return false;
+          }
+        }catch(error){
+          //assumes that board position is out of bounds
+          console.log(error);
+          return false;
+        }
+
+
+      }
+
+
+    }
 
   },
   setLayerImages:function(){
@@ -269,10 +376,15 @@ let gameDisplay={
 let gamePlay={
   checkVictory:function(){
     //check if ally unit is in enemy home row
+    if (data.gamePhase=="preGame" ||data.gamePhase=="setup" ){
+      return;
+    }
     let board=zones.gameBoard.board;
     let units=data.getActiveUnits();
     let friendlyEndgame=false;
     let enemyEndgame=false;
+    let winBeforeLoss=false;
+    let portrait, text;
     for (let i=0, len=units.allies.length; i<len; i++){
       if (units.allies[i].tags.includes("Endgame")){
         friendlyEndgame=true;
@@ -287,17 +399,53 @@ let gamePlay={
     }
     for (let i=0, len=board[0].length; i<len;i++){
       if (board[0][i] && board[0][i].friendly && !board[0][i].tags.includes("Unstoppable")){
+        winBeforeLoss=true;
         playerWins();
+      }
+    }
+
+    if (!winBeforeLoss && !gameCalculations.canPlayerAct()){
+
+      enemyWins();
+    }
+
+    function enemyWins(){
+      if ((enemyEndgame && friendlyEndgame) || (!enemyEndgame && !friendlyEndgame)){
+        data.gamePhase="EnemyVictory!";
+        portrait=avatarLibrary["HiggsHappy"];
+        text="Oh, looks like you don't have any moves you can legally make to pass the turn...well, good game!";
+        gameUI.toBattleLog(portrait, text);
+        eventHandler.announce("EnemyWin");
+      }else{
+        data.gamePhase="PlayerVictory!";
+        portrait=avatarLibrary["HiggsHappy"];
+        text="Oh, looks like you don't have any moves you can legally make to pass the turn...but oh hey, you still have The Red Jester on board!";
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsHappy"];
+        text="Their effect effectively 'flips' who the victor is any time the game would end..other than through conceding.  So that means you win!";
+        gameUI.toBattleLog(portrait, text);
+        eventHandler.announce("PlayerWin");
       }
     }
 
     function playerWins(){
       if ((enemyEndgame && friendlyEndgame) || (!enemyEndgame && !friendlyEndgame)){
-        data.gamePhase="PlayerVictory!";
-        alert ("You've won!");
+        // portrait=avatarLibrary["HiggsHappy"];
+        // text="Nice job!  You've gotten yourself a good clean win~";
+        // gameUI.toBattleLog(portrait, text);
+        eventHandler.announce("PlayerWin");
       }else{
-        data.gamePhase="EnemyVictory!";
-        alert ("You have fallen prey to the Red Jester's machinations.  Your victory has been corrupted into a loss!");
+
+        portrait=avatarLibrary["HiggsHappy"];
+        text="Ah, you did good to get a win buuut...you may have overlooked the Red Jester on the board.";
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsMad"];
+        text="Their effect effectively 'flips' who the victor is any time the game would end..other than through conceding.  So, unfortunately, that means you've lost.";
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsHappy"];
+        text="Well, unfortunate for you at least~  But even in loss we get a little better each time so keep that head high.";
+        gameUI.toBattleLog(portrait, text);
+        eventHandler.announce("EnemyWin");
       }
 
     }
@@ -367,8 +515,13 @@ let gamePlay={
     let enemy=data.getEnemy();
     let playerCards=4;
     let enemyCards=4;
+    let portrait, text;
     if (!data.firstTurn){
-      alert("Not so fast.  You need to flip to find out who goes first before you draw your hand.");
+      portrait=avatarLibrary["HiggsHappy"];
+      text="Woah, there.  No drawing from your deck until we've decided who goes first.  Click the yellow button with the coin and the hand.";
+      gameUI.toBattleLog(portrait, text);
+
+      // alert("Not so fast.  You need to flip to find out who goes first before you draw your hand.");
       return;
     }
 
@@ -432,9 +585,18 @@ let gamePlay={
 
     }
 
+    $(".phasedOut").removeClass("phasedOut");
+
     gameUI.showHand();
-    alert("Drag cards from your hand onto the first row of the board...*ahem*  you may need to scroll down a touch");
+    data.gamePhase="setup";
     $("#playerDeck").off("click.setup");
+    portrait=avatarLibrary["HiggsHappy"];
+    text="Okay, so you see your opening hand now?  Click and drag the cards you want onto the board.  Fill up your home row, the four squares I just highlighted.";
+    gameUI.toBattleLog(portrait, text);
+    portrait=avatarLibrary["HiggsHappy"];
+    text="Once you're done or you run out of cards the game will start.";
+    gameUI.toBattleLog(portrait, text);
+    gameDisplay.setTargettingAid();
     if(data.firstTurn=="enemy"){
       enemy.placeStartRow();
     }
@@ -507,16 +669,18 @@ let gamePlay={
     let enemy=data.getEnemy();
 
     let actionCompletedBy=false;
+
+    let text, portrait; //for battleUI
+
+    //Sol'mi's ability allows ALL abilities to avoid passing the turn
     let solMiActive=false;
-
-    let tapAbility;
-    console.log(gamePhase);
-
     allies.forEach((ally)=>{
       if (ally.tags.includes("Strive")){
         solMiActive=true;
       }
     });
+
+    let tapAbility;
     switch(gamePhase){
       case "unitSelect":
         if (targetCell){
@@ -525,12 +689,18 @@ let gamePlay={
 
             data.gamePhase="unitAction";
             data.activeCell={x:x, y:y};
+            portrait=avatarLibrary["HiggsHappy"];
+            text="Blue highlights mean you can move your selected card into that square by clicking it, red means you can capture an enemy by moving into that square.  A star means clicking the card again will activate its tap ability.";
+            gameUI.toBattleLog(portrait, text);
+            // portrait=avatarLibrary["HiggsHappy"];
+            // text="If you want to move another card instead just click that other card.";
+            // gameUI.toBattleLog(portrait, text);
           }
         }
         break;
       case "unitAction":
 
-        //later we'll deal with abilities and junk
+
 
         //picking a different unit to move
         if (targetCell){
@@ -577,7 +747,9 @@ let gamePlay={
         }
         else if(isCaptureLegal(board[activeCell.y][activeCell.x])){
 
-
+            portrait=avatarLibrary["HiggsHappy"];
+            text=`Nice!  You've captured ${board[y][x].name}.  To see captured cards click the deck with cell bars on it over on the right.`;
+            gameUI.toBattleLog(portrait, text);
             zones.p1Captured.capturedUnits.push(board[y].splice(x,1,false)[0]);
             board[y][x]=board[activeCell.y].splice(activeCell.x, 1, false)[0];
 
@@ -588,6 +760,9 @@ let gamePlay={
             }
 
             if(actionCompletedBy.tags.includes("FromShadow")){
+              portrait=avatarLibrary["HiggsHappy"];
+              text=`'From Shadow' triggered because you capture an enemy piece.  If you choose to use it you'll remain in your square instead of moving into the square of the captured unit.`;
+              gameUI.toBattleLog(portrait, text);
               if(window.confirm("Use 'From Shadow'?")){
                 board[activeCell.y][activeCell.x]=board[y].splice(x, 1, false)[0];
                 board[activeCell.y][activeCell.x].position={y:activeCell.y, x:activeCell.x};
@@ -598,7 +773,9 @@ let gamePlay={
             if(actionCompletedBy.tags.includes("Frenzy")){
               if(zones.p1Status.frenzyExhaust){
                 zones.p1Status.frenzyExhaust=false;
-
+                portrait=avatarLibrary["HiggsHappy"];
+                text=`Frenzy doesn't let you infinitely take actions of course, it gives you at maximum ONE extra action per turn.  It's a common mistake though so don't feel bad if you assumed.`;
+                gameUI.toBattleLog(portrait, text);
               }
               else{
                   zones.p1Status.frenzyExhaust=true;
@@ -609,16 +786,26 @@ let gamePlay={
                   actionCompletedBy=false;
                   gameDisplay.setCardImages();
                   gamePlay.checkVictory();
+                  portrait=avatarLibrary["HiggsHappy"];
+                  text=`Frenzy is a fun passive.  If your card with Frenzy captures something you immediately get an extra action! Buut, if you don't win within the next three turns you automatically lose.`;
+                  gameUI.toBattleLog(portrait, text);
 
               }
             }else{
               if(zones.p1Status.frenzyExhaust){
+                portrait=avatarLibrary["HiggsHappy"];
+                text=`Frenzy doesn't let you infinitely take actions however, it gives you at maximum ONE extra action per turn.  It's a common mistake though so don't feel bad if you assumed.`;
+                gameUI.toBattleLog(portrait, text);
                 zones.p1Status.frenzyExhaust=false;
 
               }
             }
 
-            if(actionCompletedBy.tags.includes("TrialOfWings") && !actionCompletedBy.tags.includes("TrialComplete")){actionCompletedBy.tags.push("TrialComplete");}
+            if(actionCompletedBy.tags.includes("TrialOfWings") && !actionCompletedBy.tags.includes("TrialComplete")){actionCompletedBy.tags.push("TrialComplete");
+            portrait=avatarLibrary["HiggsHappy"];
+            text=`WHAT?!  Your card is evolving!  TrailOfWings is a weird tap ability since it can only be used after that unit captures something which you just did!  If you get the chance tap the card to double its move and capture range!`;
+            gameUI.toBattleLog(portrait, text);
+          }
 
 
 
@@ -643,12 +830,12 @@ let gamePlay={
       console.log("Effect being targeted");
       console.log(zones.p1Status.resolvingEffect);
         if(tapLibrary[zones.p1Status.resolvingEffect.name].targetEffect.call(zones.p1Status.resolvingEffect.triggeringCard, {x:x, y:y})){
-          console.log("effect went through");
+          // console.log("effect went through");
           if(tapLibrary[zones.p1Status.resolvingEffect.name].passTurn && !solMiActive){
-            console.log("passing turn");
+            // console.log("passing turn");
             actionCompletedBy=zones.p1Status.resolvingEffect.triggeringCard;
           }else{
-            console.log("holding turn");
+            // console.log("holding turn");
             data.gamePhase="unitSelect";
           }
 
@@ -671,17 +858,19 @@ let gamePlay={
 
     if(actionCompletedBy){
       if(actionCompletedBy.tags.includes("Parry") && actionCompletedBy.tags.includes("Defended")){
-        console.log("removing Defended...");
+        // console.log("removing Defended...");
         actionCompletedBy.tags.splice(actionCompletedBy.tags.indexOf("Defended"),1);
       }
 
-      console.log(actionCompletedBy);
+      // console.log(actionCompletedBy);
 
-      gamePlay.checkVictory();
+
       eventHandler.announce("EnemyTurnStart");
       data.gamePhase="enemyTurn";
     }
     gameDisplay.setCardImages();
+    gamePlay.checkVictory();
+
 
     if (data.gamePhase=="enemyTurn"){
 
@@ -736,6 +925,7 @@ let gamePlay={
   flipForFirst:function(){
     let players=["friendly", "enemy"];
     // let enemy=enemies[localStorage.getItem("currentEnemy")];
+    let text, portrait;
     let enemy=data.getEnemy();
     data.firstTurn= players[ci.dieRoll(players.length)-1];
     // for (let i=0; i<50; i++){
@@ -746,9 +936,14 @@ let gamePlay={
     // }
 
     if (data.firstTurn=="friendly"){
-      alert("You won the flip!  You play first.");
+      portrait=avatarLibrary["HiggsHappy"];
+      text="You won the flip!  You play first.  Go ahead and click your deck now to draw your opening hand.";
+      gameUI.toBattleLog(portrait, text);
+
     }else{
-      alert("You lost the flip!  Opponent plays first.");
+      portrait=avatarLibrary["HiggsSnide"];
+      text="You lost the flip, so you'll play second.  Go ahead and click your deck now to draw your opening hand.";
+      gameUI.toBattleLog(portrait, text);
 
     }
   },
@@ -802,7 +997,6 @@ let gamePlay={
       location.reload();
     // gamesBegin();
   }
-
 }
 
 let deckBuilder={
@@ -883,19 +1077,26 @@ let gameUI={
     $(".captureDeck").off("click");
     $(".discardDeck").on("click", gameUI.showDiscard);
     $(".captureDeck").on("click", gameUI.showCapture);
+    $("#higgsTextBox").on("click", shop.advanceDialogue);
+
+    $(".inactiveTag").on("click", shop.toggleActiveTag);
 
   },
   showHand:function(){
     let handState=``;
     let hand=zones.p1Hand.heldCards;
-
+    console.log("calling show hand");
     hand.forEach((card, index)=>{
       handState+=`<img  data-position="${index}" class="cardInHand" src="${cardLibrary[card.name].cardArt}"></img>`;
       // handState+=`<img class="cardInHand" style="background-image:url(${cardLibrary[card.name].cardArt})"></img>`;
     });
+    if($("#playerHandRow").hasClass("hidden")){
+      setTimeout(function(){ $("#playerHandRow")[0].scrollIntoView({ behavior: 'smooth', block:"end"}); console.log("showingHand"); }, 750);
+    }
 
     $("#playerHandRow").html(handState);
     $("#playerHandRow").removeClass("hidden");
+    gameDisplay.setTargettingAid();
 
 
     $(".cardInHand").on("dragstart", gamePlay.dragFromHand);
@@ -944,8 +1145,133 @@ let gameUI={
 
     $("#hoveredCard").attr("src", cardLibrary[data.displayedCard.name]["cardArt"]);
 
+  },
+  toBattleLog:function(portraitURL, text){
+
+    let adviceQuip=`<div class="adviceQuip container-fluid">
+      <div class="advicePortrait" style="background-image:url('${portraitURL}')"></div>
+      <div class="adviceText hoverFlow">${text}</div>
+    </div>`;
+    $("#battleLog").append(adviceQuip);
+
+    //scroll to show the newest added quip
+    let objDiv = document.getElementById("battleLog");
+    objDiv.scrollTop = objDiv.scrollHeight;
   }
 }
+
+let shop={
+  openShop:function(){
+    data.sceneStats.dialogueIndex=0;
+    shop.updateScene();
+    $("#higgsShop").removeClass("hidden");
+  },
+  closeShop:function(){
+    $("#higgsShop").addClass("hidden");
+    data.sceneStats.activeScene="questionHub";
+  },
+  toggleActiveTag:function(event){
+    event.stopPropagation();
+    //handle tabs
+    $(".inactiveTag").off();
+    let newActive=$(".inactiveTag")[0];
+    let oldActive=$(".activeTag")[0];
+    $(newActive).removeClass("inactiveTag");
+    $(newActive).addClass("activeTag");
+    $(oldActive).removeClass("activeTag");
+    $(oldActive).addClass("inactiveTag");
+
+    $(oldActive).on("click", shop.toggleActiveTag);
+
+    //handle boxes
+    let newText=$(".hiddenText")[0];
+    let oldText=$(".activeText")[0];
+    $(newText).removeClass("hiddenText");
+    $(newText).addClass("activeText");
+    $(oldText).removeClass("activeText");
+    $(oldText).addClass("hiddenText");
+
+  },
+  updateScene:function(){
+
+    let currentScene=sceneLibrary[data.sceneStats.activeScene];
+    if (!currentScene){
+      alert(`Attempted to load scene ${data.sceneStats.activeScene} from scene library and failed.  Please tell Steven about this`);
+      return;
+    }
+
+    let playerOptions=``;
+    let profile=data.getProfile();
+    $(".playerResponseButton").remove();
+
+    currentScene.playerResponse.forEach((response)=>{
+      playerOptions+=`<button class="playerResponseButton" onclick="shop.changeScene('${response.leadsTo}')">${response.prompt}</button>`;
+    });
+    playerOptions+=`<button class="playerResponseButton" onclick="shop.closeShop()" style="background-color:brown">Leave Shop, Play Practice Game</button>`;
+    for (let i=currentScene.playerResponse.length; i<14; i++){
+      playerOptions+=`<button class="playerResponseButton" disabled>--------</button>`;
+    }
+
+    $("#playerResponseBox").append(playerOptions);
+    shop.updateHiggs();
+
+    // $("#higgsNamePlate")
+    $("#playerNamePlate").html(`<span>${profile.name}</span>`);
+
+
+
+  },
+  updateHiggs:function(){
+    let currentScene=sceneLibrary[data.sceneStats.activeScene];
+    if (!currentScene){
+      alert(`Attempted to load scene ${data.sceneStats.activeScene} from scene library and failed.  Please tell Steven about this`);
+      return;
+    }
+    let activeDialogue=currentScene.higgsDialogue[data.sceneStats.dialogueIndex];
+    let higgsText=`<div class="dialogueChunk">${activeDialogue.text}
+                     <div class="dialogueTracker">${data.sceneStats.dialogueIndex+1}/${currentScene.higgsDialogue.length}</div>
+                   </div>
+                  `;
+
+    $(".dialogueChunk").remove();
+    $("#higgsTextBox").append(higgsText);
+    $("#shopPortrait").attr("src", avatarLibrary[activeDialogue.sprite]);
+  },
+  advanceDialogue:function(){
+    let currentScene=sceneLibrary[data.sceneStats.activeScene];
+    if (!currentScene){
+      alert(`Attempted to load scene ${data.sceneStats.activeScene} from scene library and failed when advancing text.  Please tell Steven about this`);
+      return;
+    }
+    if (data.sceneStats.dialogueIndex+1<currentScene.higgsDialogue.length){
+      data.sceneStats.dialogueIndex++;
+    }
+    else {
+      data.sceneStats.dialogueIndex=0;
+    }
+
+    shop.updateHiggs();
+
+    // let higgsText=`<div class="dialogueChunk">${currentScene.higgsDialogue[data.sceneStats.dialogueIndex].text}
+    //                  <div class="dialogueTracker">${data.sceneStats.dialogueIndex+1}/${currentScene.higgsDialogue.length}</div>
+    //                </div>
+    //               `;
+    // let playerOptions=``;
+    // $(".dialogueChunk").remove();
+    //
+    // $("#higgsTextBox").append(higgsText);
+  },
+  changeScene:function(newScene){
+    console.log(newScene);
+    data.sceneStats.activeScene=newScene;
+    data.sceneStats.dialogueIndex=0;
+    shop.updateScene();
+    shop.toggleActiveTag(event);
+
+  }
+}
+
+
 
 // function setClicks(){
 //   $("#resetButton").click(resetStorage);
