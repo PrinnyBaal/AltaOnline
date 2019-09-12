@@ -13,7 +13,74 @@ $storeFont:"Monotype Corsiva";
 $talkFont:"Lucida Handwriting";
 $baseFont:"Verdana";
 
+$quipTextBG:#eeeeee;
+
 $cellSize:250px;
+
+$textboxHeight:400px;
+
+$shopBG:"../images/backgrounds/witch.png";
+
+
+//
+
+@keyframes newAdviceQuip{
+  0%   {background-color: $lightBack};
+  // 25%  {background-color: #d65a31};
+  50%  {background-color: $flairColor;}
+  100% {background-color: $lightBack;}
+}
+
+
+//
+
+body{
+  font-family: $baseFont;
+}
+
+.iconButton:disabled{
+  filter:grayscale(75%);
+  cursor:not-allowed;
+}
+.iconButton{
+  cursor:pointer;
+}
+
+#deckbuildButton{
+  background-size:cover;
+  background-image:url('https://img.icons8.com/clouds/100/000000/blueprint-with-pen.png');
+  height:100px;
+  width:100px;
+  padding-right:5px;
+  background-color:purple;
+}
+#shopButton{
+  background-size:cover;
+  background-image:url('https://res.cloudinary.com/metaverse/image/upload/v1541010546/Avatars/Higgsy/side_higgsLaugh.png');
+  height:100px;
+  width:100px;
+  padding-right:5px;
+  background-color:red;
+}
+#shopButton:hover{
+  background-image:url('https://res.cloudinary.com/metaverse/image/upload/v1541010541/Avatars/Higgsy/side_higgsSnide.png');
+}
+#coinFlipButton{
+  background-size:cover;
+  height:100px;
+  width:100px;
+  padding-right:5px;
+  background-color:yellow;
+  background-image:url('https://img.icons8.com/cotton/256/000000/coin-in-hand.png');
+}
+#newGameButton{
+  background-size:cover;
+  background-image:url('https://img.icons8.com/clouds/100/000000/ace-of-hearts--v1.png');
+  height:100px;
+  width:100px;
+  padding-right:5px;
+  background-color:blue;
+}
 
 #shopBanner{
   height:15vh;
@@ -36,6 +103,138 @@ $cellSize:250px;
     font-family:$talkFont;
     color:$flairColor;
   }
+}
+
+#higgsShop{
+  background-image:url($shopBG);
+  background-size:cover;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  z-index:10;
+
+  #shopPortrait{
+    // background-size:contain;
+    // background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1568150577/Avatars/Higgsy/MC_Smile_eyes_opened.png");
+    position:absolute;
+    bottom:$textboxHeight;
+    right:50px;
+    // height:500px;
+    // width:300px;
+    height:50vh;
+    width:35vh;
+    object-fit: fill;
+  }
+
+  #higgsTextBox{
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:$textboxHeight;
+    width:100%;
+    border-style: solid;
+    border-width: 13px 15px 14px 13px;
+    font-size:2.5em;
+    padding:3px;
+    color:$lightBack;
+
+
+
+    background-color:$flairColor;
+    -moz-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881019/UI/card_back_red.png) 11 13 9 11;
+    -webkit-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881019/UI/card_back_red.png) 11 13 9 11;
+    -o-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881019/UI/card_back_red.png) 11 13 9 11;
+    border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881019/UI/card_back_red.png) 11 13 9 11;
+    // transition: width 1s;
+
+    #higgsNamePlate{
+      position:absolute;
+      // left:0;
+      bottom: calc(#{$textboxHeight} - 25px);
+      width:400px;
+      height:100px;
+      clip-path: polygon(50% 15%, 100% 0, 100% 100%, 0 100%, 0 0);
+      background-color:$flairColor;
+
+      z-index:-1;
+      transition: left 1s;
+      display: flex;
+      align-items:flex-end;
+      justify-content:center;
+      font-size:1.5em;
+      padding-bottom:10px;
+    }
+
+    .dialogueChunk{
+      position:absolute;
+      height:100%;
+      width:100%;
+      .dialogueTracker{
+        position:absolute;
+        bottom:5%;
+        right:2%;
+      }
+    }
+  }
+  #playerResponseBox{
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:$textboxHeight;
+    width:100%;
+    background-color:$darkBack;
+    border-style: solid;
+    border-width: 11px 13px 9px 11px;
+    -moz-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png) 13 15 14 13;
+    -webkit-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png) 13 15 14 13;
+    -o-border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png) 13 15 14 13;
+    border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png) 13 15 14 13;
+    display:flex;
+    flex-wrap:wrap;
+
+
+    #playerNamePlate{
+      position:absolute;
+      bottom: calc(#{$textboxHeight} - 25px);
+      width:400px;
+      height:100px;
+      clip-path: polygon(50% 15%, 100% 0, 100% 100%, 0 100%, 0 0);
+      background-color:$greyBack;
+      z-index:-1;
+      transition: left 1s;
+      display: flex;
+      align-items:flex-end;
+      color:white;
+      justify-content:center;
+      padding-bottom:25px;
+      font-size:1.5em;
+    }
+
+    .playerResponseButton{
+      height:calc(#{$textboxHeight} / 3);
+      width:20%;
+
+    }
+  }
+
+  .hiddenText{
+    height:0 !important;
+    transition: all 0.4s linear;
+  }
+  .activeText{
+  }
+
+  .activeTag{
+    left:0;
+  }
+
+  .inactiveTag{
+    left:405px;
+  }
+
 }
 
 #gameRow{
@@ -65,6 +264,7 @@ $cellSize:250px;
     // grid-column-end: 3;
     // grid-row-start: 2;
     // grid-row-end: 3;
+    cursor:pointer;
     background: rgb(0,0,0);
     background: linear-gradient(180deg, rgba(0,0,0,1) 25%, rgba(255,255,255,1) 75%);
 
@@ -74,7 +274,7 @@ $cellSize:250px;
 
 #handsContainer{
   position: absolute;
-  left: calc(#{$cellSize} * 6 + 100px);
+  left: calc(#{$cellSize} * 6.5 + 100px);
   height: calc(#{$cellSize} * 4);
   width: 750px;
   background-color: black;
@@ -152,6 +352,7 @@ $cellSize:250px;
     height:550px;
     width:450px;
     object-fit: fill;
+    cursor:pointer;
   }
 }
 
@@ -206,6 +407,7 @@ $cellSize:250px;
   width:100%;
   height:500px;
   transition: height 1.5s;
+  transition-timing-function: ease-out;
   overflow:auto;
   background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1533578530/Backgrounds/ep_naturalblack.png");
   background-size:cover;
@@ -257,6 +459,47 @@ $cellSize:250px;
   }
 }
 
+#battleLog{
+  position:absolute;
+  left:10px;
+  top:620px;
+  height:650px;
+  // width:500px;
+  width:calc(#{$cellSize} * 2);
+  border:5px solid black;
+  display:flex;
+
+  flex-direction:column;
+  background-color:rgba(0, 0, 0, 0.6);
+  overflow:auto;
+  .adviceQuip{
+    width:100%;
+    height:100px;
+    background-color:white;
+    border:2px solid grey;
+    flex-shrink:0;
+    position:relative;
+    .advicePortrait{
+      background-size:100% 100%;
+      border:2px solid grey;
+      background-color:$darkBack;
+      position:absolute;
+      left:0;
+      width:20%;
+      height:100%;
+    }
+    .adviceText{
+      background-color:$lightBack;
+      position:absolute;
+      right:0;
+      width:80%;
+      height:100%;
+      animation-name:newAdviceQuip;
+      animation-duration:2s;
+    }
+  }
+}
+
 #captureZone{
   position:fixed;
   background-color:rgba(0, 0, 0, 0.4);
@@ -280,8 +523,13 @@ $cellSize:250px;
   overflow:hidden !important;
 }
 
+.phasedOut{
+  opacity:0 !important;
+  transition: opacity 1s;
+}
 .cardZone{
-  background-color:green;
+  cursor:pointer;
+  background-color:grey;
   height:100%;
   width:100%;
 }
@@ -291,8 +539,8 @@ $cellSize:250px;
   position:absolute;
   top:1px;
   right:1px;
-  height:25px;
-  width:25px;
+  height:150px;
+  width:150px;
   background-color:grey;
   background-image:url("https://res.cloudinary.com/metaverse/image/upload/v1548289539/icons8-delete-48.png");
   background-size:contain;
@@ -316,12 +564,25 @@ $cellSize:250px;
   height:450px;
   width:350px;
   object-fit: fill;
-
+  cursor:grab;
 }
+.cardInHand:active{
+  cursor:grabbing;
+}
+
 .hoverFlow{
   overflow:hidden;
 }
 
 .hoverFlow:hover{
   overflow:auto;
+}
+
+.hFlip{
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
 }
