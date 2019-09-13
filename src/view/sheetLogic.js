@@ -1,14 +1,5 @@
 
-sheetProj.view.sheetLogic = {
-  setupUserInterface: function () {
-    assetCache.fillCache();
-    enableDragging();
-    eventHandler.announce("login");
-    if (data.sceneStats.activeScene=="firstMeet"){
-      shop.openShop();
-    }
-    }
-};
+
 
 function enableDragging(){
   $("html").on("dragover", function(event) {
@@ -39,6 +30,8 @@ function gamesBegin(){
   gameUI.setClicks();
 
 }
+
+
 
 let gameDisplay={
 
@@ -927,6 +920,7 @@ let gamePlay={
     // let enemy=enemies[localStorage.getItem("currentEnemy")];
     let text, portrait;
     let enemy=data.getEnemy();
+
     data.firstTurn= players[ci.dieRoll(players.length)-1];
     // for (let i=0; i<50; i++){
     //   let roll=ci.dieRoll(players.length)-1;
@@ -935,6 +929,7 @@ let gamePlay={
     //   console.log(players[roll]);
     // }
 
+    document.getElementById("coinFlipButton").disabled = true;
     if (data.firstTurn=="friendly"){
       portrait=avatarLibrary["HiggsHappy"];
       text="You won the flip!  You play first.  Go ahead and click your deck now to draw your opening hand.";
@@ -952,9 +947,16 @@ let gamePlay={
     let rect=event.target.getBoundingClientRect();
     let x=Math.floor((event.clientX-rect.left)/data.gridStats.size);
     let y=Math.floor((event.clientY-rect.top)/data.gridStats.size);
+    let targetCell;
 
     let board=zones.gameBoard.board;
-    let targetCell=board[y][x];
+    try{
+       targetCell=board[y][x];
+    }catch{
+
+      return;
+    }
+
 
     if (targetCell && (!data.displayedCard || data.displayedCard.name!=targetCell.name) && (!targetCell.tags.includes("Illusion") || targetCell.friendly)){
       data.displayedCard=targetCell;
@@ -1191,6 +1193,8 @@ let shop={
     $(oldText).removeClass("activeText");
     $(oldText).addClass("hiddenText");
 
+    $(".waitingTab").removeClass("waitingTab");
+
   },
   updateScene:function(){
 
@@ -1250,6 +1254,10 @@ let shop={
       data.sceneStats.dialogueIndex=0;
     }
 
+    if (data.sceneStats.dialogueIndex+1==currentScene.higgsDialogue.length){
+      $("#playerNamePlate").addClass("waitingTab");
+    }
+
     shop.updateHiggs();
 
     // let higgsText=`<div class="dialogueChunk">${currentScene.higgsDialogue[data.sceneStats.dialogueIndex].text}
@@ -1269,9 +1277,61 @@ let shop={
     shop.toggleActiveTag(event);
 
   }
-}
+};
 
 
+
+let soundControl={
+
+  openVolumeManager:function(){
+    $("#volumeAdjustScreen").removeClass("hidden");
+  },
+  closeVolumeManager:function(){
+    $("#volumeAdjustScreen").addClass("hidden");
+  },
+  setSound:function(){
+    console.log("sound conrolling");
+    let profile=data.getProfile();
+    let settings=profile.soundSettings;
+
+    //preload all soundfiles
+
+    //set all sliders
+    // $("#bgmSlider").val(settings.bgm*100);
+    document.getElementById("bgmSlider").value = settings.bgm*100;
+    document.getElementById("sfxSlider").value = settings.sfx*100;
+    document.getElementById("voiceSlider").value = settings.voice*100;
+    // $("#bgmSlider").attr("value", settings.bgm*100);
+
+    //
+
+    console.log("done?");
+  },
+  changeSetting:function(setting){
+    console.log("oohh");
+    let profile=data.getProfile();
+    let settings=profile.soundSettings;
+    let newValue=event.target.valueAsNumber*.01;
+    settings[setting]=newValue;
+
+    data.setProfile(profile);
+
+
+  }
+};
+
+sheetProj.view.sheetLogic = {
+  setupUserInterface: function () {
+    if (data.sceneStats.activeScene=="firstMeet"){
+      shop.openShop();
+    }
+
+    assetCache.fillCache();
+    enableDragging();
+    eventHandler.announce("login");
+
+    }
+};
 
 // function setClicks(){
 //   $("#resetButton").click(resetStorage);

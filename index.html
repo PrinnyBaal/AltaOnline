@@ -22,6 +22,26 @@
 <style>
 </style>
 <body>
+  <div id="volumeAdjustScreen" class="hidden closableDiv">
+    <button class="closeButton" onclick="soundControl.closeVolumeManager()"></button>
+    <div id="volumeSettings" class="container-fluid">
+      <div
+      <div id="volumeHeader" class="row"><div class="col-12" style="text-align:center;">Volume</div></div>
+      <div id="bgmRow" class="row audioRow">
+        <div class="col-2 offset-1">BGM:</div>
+        <div class="col-8"><input id="bgmSlider" onchange="soundControl.changeSetting('bgm')" type="range" min="0" max="100"  class="slider"></div>
+      </div>
+      <div id="sfxRow" class="row audioRow">
+        <div class="col-2 offset-1">SFX:</div>
+        <div class="col-8"><input id="sfxSlider" onchange="soundControl.changeSetting('sfx')" type="range" min="0" max="100"  class="slider"></div>
+      </div>
+      <div id="voiceRow" class="row audioRow">
+        <div class="col-2 offset-1">Voice:</div>
+        <div class="col-8"><input id="voiceSlider" onchange="soundControl.changeSetting('voice')" type="range" min="0" max="100"  class="slider"></div>
+      </div>
+  </div>
+
+  </div>
   <div id="deckbuilderScreen" class="hidden">
     <div id="deckTitle">Your Deck (Click cards to remove) <button onclick="deckBuilder.exitDeckBuilder()"> Done Building</button></div>
     <div id="deckZone" class="hoverFlow"></div>
@@ -69,6 +89,7 @@
       <div id="boardButtonZone" class="row">
         <button id="shopButton" class="iconButton" title="Go To Shop" onclick="shop.openShop()" style=""></button>
         <button id="newGameButton" class="iconButton" title="Start A New Practice Game" onclick="gamePlay.reset()" style=""></button>
+        <!-- <button id="settingsButton" class="iconButton" title="Open Settings" onclick="soundControl.openVolumeManager()" style=""></button> -->
         <button id="coinFlipButton" class="iconButton" title="Flip To See Who Goes First" onclick="gamePlay.flipForFirst()" style=""></button>
         <button id="deckbuildButton" class="iconButton" title="Edit Deck" onclick="deckBuilder.launchDeckBuilder()" style=""></button>
       </div>
