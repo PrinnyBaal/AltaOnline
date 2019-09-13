@@ -10,7 +10,16 @@ let starterDeck=["LumiMaarit", "MiranScout", "AltambranDuelist", "PhilomanSchola
 let validEnemyCommanders=["DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
 
 
-
+let starterProfile={
+  name:"Player",
+  soundSettings:{
+    bgm:.5,
+    sfx:.3,
+    voice:.7
+  },
+  deck:[ "MiranScout", "AltambranDuelist", "CourierOppurtunist", "RuneKnight", "YoungSalvager", "HelpfulFey", "WinterWarrior"],
+  collection:[],
+}
 
 
 
@@ -1727,38 +1736,38 @@ let sceneLibrary={
 
   //Intro, only plays once "what the hell are you doing h-  oh I see.  Shops closed but ask some questions if you wanna"
   firstMeet:{
-    higgsDialogue:[{text:"Oh hell no!  I've got two bags of holding and I'm not afraid to take us BOTH out you icicle licking scraph-...oh, wait you're not....",
+    higgsDialogue:[{text:"Oh <b>hell</b> no!  I've got two bags of holding and I'm not afraid to take us BOTH out you icicle licking scraph-...oh, wait you're not....",
                     sprite:"FullHiggsScared"},
-                    {text:"Aha, well never mind that...  You shouldn't scuttle around like that though.  So...uhm...you don't look like you're Court...you have buisness here or you just the hero type that takes EVERY closed door as an invitation?",
+                    {text:"Aha, well never mind that...  So...uhm...you don't look like you're Court...you have business scuttling around here or you just the hero type that takes EVERY closed door as an invitation?",
                     sprite:"FullHiggsBlush"}],
     playerResponse:[{prompt:"Oh, I'm...", leadsTo:"hereToShop"}, {prompt:"Who did you THINK I was?", leadsTo:"pushHiggs"}]
   },
   pushHiggs:{
-    higgsDialogue:[{text:"I thought I said 'never mind that.'  But I can already tell you're going to be annoying about this so fine I'll give you the gist.",
+    higgsDialogue:[{text:"I thought I said <b>'never mind that</b>.'  But I can already tell you're going to be annoying about this so fine, I'll give you the gist.",
                     sprite:"FullHiggsTired"},
-                    {text:"I'm not actually Court either.  I came from Alt-...ogether a different settlement.  Some people there don't like me much and I thought you mighta been one of 'em.'",
+                    {text:"I'm actually not Court either.  I came from Alt-...ogether a different settlement.  I thought you might be someone who, ah, followed me from back home.",
                     sprite:"FullHiggsBlush"},
                     {text:"And that's all you're getting so don't try to wheedle the rest of my life story outta me unless you plan on offering something shiny and metal.",
                     sprite:"FullHiggsSmile"},
-                    {text:"Not that that'd get me to open up, buuuut I'd find it way less annoying to be pestered about it if I got some coin outta the interaction.  Night knows I need it...",
+                    {text:"Not that that'd get me to open up, buuuut I might not toss you out on your ass for pestering me if I got some coin outta the interaction.  Night knows I need it...",
                     sprite:"FullHiggsSmileBlink"},
-                    {text:"Oh, but I guess I can tell ya I'm Higgs.  It's awkward when you don't know what to call someone and they just have to make up some weird nickname for you, ain't that right Scuttles?",
+                    {text:"Oh, but I guess I can tell ya I'm Higgs.  It's awkward when you don't know what to call someone and they just have to make up some weird nickname for you.  Ain't that right Scuttles?",
                     sprite:"FullHiggsSmile"}
                   ],
     playerResponse:[{prompt:"Heh.  Fair enough, anyway I'm here to...", leadsTo:"hereToShop"}, {prompt:"Nope. We're not doing that.  I'm just here to...", leadsTo:"resistNickname"}]
   },
   hereToShop:{
-    higgsDialogue:[{text:"Ohhh, yeah you're actually in the right place just the wrong time, I *am* higgs and this *is* my tavern and I *do* deal in Alta supplies...but nothing's really for sale yet.  I bought the property recently but, well...",
+    higgsDialogue:[{text:"Ohhh, yeah you're actually in the right place just the wrong time, I <b>am</b> higgs and this <b>is</b> my tavern and I <b>do</b> deal in Alta supplies...but nothing's really for sale yet.  I bought the property recently but, well...",
                     sprite:"FullHiggsSmile"},
-                    {text:"Living and material costs here absolutely kicked my ass. I brought a decent amount of supplies with me but I can't really afford labor so it's taken me longer than I expected to get my shop open.",
+                    {text:"Living and material costs here absolutely kicked my ass. I brought a decent amount of supplies with me but affording labor's not in the cards.  So it's taken me longer than I expected to get my shop open.",
                     sprite:"FullHiggsBlush"},
-                    {text:"But hey, glad to see advertising wasn't a wash.  Hmm...hey, tell you what.  I can't offer you a drink but I know what you adventurer sorts are usually after.  For coming out all this way, how about I answer some no-personal questions.  Heck you can even borrow my collection and I'll teach you some Alta.",
+                    {text:"But hey, glad to see advertising wasn't a wash.  Hmm...hey, tell you what.  I can't offer you a drink but I know what you adventurer sorts are usually after.  For coming out all this way, how about I answer some <b>non-personal</b> questions.  Heck you can even borrow my collection and I'll teach you some Alta.",
                     sprite:"FullHiggsSmile"},
                   ],
     playerResponse:[{prompt:"Sure, that works.", leadsTo:"questionHub"}]
   },
   resistNickname:{
-    higgsDialogue:[{text:"Pfft, you're no fun.  But I guess you ARE my first customer...hmm...",
+    higgsDialogue:[{text:"Pfft, you're no fun.  But I guess scrappers can't be choosers...hmm...",
                     sprite:"FullHiggsSmileBlink"},
                     {text:"Alright, so here's the deal.  You're in the right place but my tavern isn't actually open yet.  Since you made the trip though I'll play the good host and answer some NON-PERSONAL questions.",
                     sprite:"FullHiggsTired"},
@@ -1788,20 +1797,27 @@ let sceneLibrary={
                    ]
   },
     altaBeginnings:{
-      higgsDialogue:[{text:"Okay sooo...I'd say it started back with Hexapawn.  That's the one where you get a Three by three board and load up your side with pawns, then try to promote your piece before your opponent.",
+      higgsDialogue:[{text:"Okay sooo...I'd say it started back with Hexapawn.  That's the one where you get a three by three board and load up your side with pawns, then try to promote a piece before your opponent.",
                       sprite:"FullHiggsSmile"},
-                      {text:"Game was super easy to break and kinda boring though so I wouldn't be surprised if you've never heard of it.  It was like tic-tac-toe novice chess players liked between matches.",
+                      {text:"Game was super niche though so I wouldn't be surprised if you've never heard of it.  It was easy enough to break that it was basically tic-tac-toe for novice chess players.",
                       sprite:"FullHiggsSmile"},
-                      {text:"It went through a few variations but the one that really launched it was when they switched out the pawns for cards that paid homage to different groups around Silva.  Some Philoman kid sketched out the first few cards I think.  Looked like crap but Handsome Jack, he's this big 'buisnessman' over in Altambra or so I hear, liked the idea and had his people make quality versions.  At first it wasn't even mechanically different a  game but it was way easier to carry and people liked collecting different art.",
+                      {text:"It went through a few variations but the one that really launched it was when they switched out the pawns for cards that paid homage to different groups around Silva.  Some Philoman kid sketched out the first few cards I think.  Looked like crap but Handsome Jack, he's this big 'buisnessman' over in Altambra or so I hear, liked the idea and had his people make quality versions.",
                       sprite:"FullHiggsSmile"},
-                      {text:"It wasn't just that they were pretty to look at.  They...reminded lot sof folk of home.  Altambra's great because it opens its arms as everyone and anyone's second home.  But people don't just forget their first home.  Even the ones that don't admit it like to remember that home.  Represent it.  And Alta gave a lot of people that.  So I hear.",
+                      {text:"At first it wasn't even mechanically different a game but it was way easier to carry and people liked collecting different art.",
+                        sprite:"FullHiggsSmile"},
+                      {text:"It wasn't just that they were pretty to look at.  They...reminded lot sof folk of home.  Altambra's great because it opens its arms as everyone and anyone as a second home.  But people don't just forget their first home.  Even the ones that don't admit it like to remember their roots.  Represent it.  And Alta gave a lot of people that.  So I hear.",
                        sprite:"FullHiggsBlush"},
-                       {text:"Anyhow once the card thing really stuck the next thing to change was the board, went to a four by four to help with the whole solved game issue.",
+
+                       {text:"Anyhow, once the card thing really stuck the next thing to change was the board. Went to a four by four to help with the whole solved game issue.",
                         sprite:"FullHiggsSmile"},
-                      {text:"That wasn't <b>quite</b> enough though but thanks to using cards instead of pawns things other than art could go on 'em.  Jack started asking his crafters to make cards with special abilities on 'em.  A little extra rare of course so he could get people buying. around here is where hte name Alta got stuck on.",
+
+                      {text:"That wasn't <b>quite</b> enough but thanks to using cards instead of pawns things other than art could go on 'em.  Jack started asking his crafters to make cards with special abilities.  A little extra rare of course so he could get people buying. Around here is where the name Alta got stuck on.",
                         sprite:"FullHiggsSmile"},
-                      {text:"There've been, heck there still are changes and not every place that plays agrees on the exact rules but up to there is what everyone agrees is Alta.  If you pushed me I guess I'd say that the new 'commander' cards are the next big shakeup.  They're extra rare and based on actual people, Jack just leans on his infobrokers to suggest people or legends that people would be excited to slide into their decks.",
+                      {text:"There've been, heck there still are changes and not every place that plays agrees on the exact rules but that's the core of what people call Alta.",
+                        sprite:"FullHiggsSmileBlink"},
+                      {text:"If you pushed me I guess I'd say that the new 'commander' cards are the next big shakeup.  They're extra rare and based on actual people, Jack just leans on his infobrokers to suggest people or legends that people would be excited to slide into their decks.",
                         sprite:"FullHiggsTired"},
+
                       {text:"Anyhow, that's about the gist.  So I've heard.  Any other questions?",
                         sprite:"FullHiggsSmile"},
                       ],
@@ -1823,19 +1839,19 @@ let sceneLibrary={
 
                 },
     altaPlayers:{
-      higgsDialogue:[{text:"Well you can find plenty of game in Altambra for...well obvious reasons.  <b>Alta</b>mbra.  Get it?  There are plenty of streetgames and most pubs have a table or two going at any time.  But the <b>biggest</b> games are definitely in one of Handsome Jacks' establishments.",
+      higgsDialogue:[{text:"Well you can find plenty of games in Altambra for...well obvious reasons.  <b>Alta</b>mbra.  Get it?  There are plenty of streetgames and most pubs have a table or two going at any time.  But the <b>biggest</b> games are definitely in one of Handsome Jacks' establishments.",
                       sprite:"FullHiggsSmile"},
                       {text:"He runs lots of gambling parlors and recently Alta has been a nice way of drawing people in.  He runs tournaments occasionally that really bring out the fans, even had one not too long ago where the winner got her own card made along with a handful of super rare Commanders. The rules they set down there are the closest you'll get to 'official'.",
                       sprite:"FullHiggsSmile"},
-                      {text:"Outside of Altambra though Aestas or Bruma are your best bets, though mostly it's just guards and soldiers who are into it.",
+                      {text:"Outside of Altambra,  Aestas or Bruma are your best bets. Though mostly it's just guards and soldiers who are into it.",
                       sprite:"FullHiggsSmile"},
-                      {text:"People trade and sell between eachother but the only REAL way to get more cards, including the latest, is in the parlors at Altambra.  Which is part of why it won't grow until merchants start prioritizing shipments to other settlements.",
+                      {text:"People trade and sell between eachother but the only REAL way to get more cards, including the latest, is in the parlors at Altambra.  Which is part of why it doesn't tend to grow into the other settlements.",
                       sprite:"FullHiggsSmile"},
-                      {text:"Most of the guards and soldiers here however spend time in Altambra pretty regularly since that's usually where the Courts parley, so they can tap into the supply enough to spawn playgroups among themselves but that's about it.",
+                      {text:"Most of the guards and soldiers here, however, spend time in Altambra pretty regularly since that's usually where the Courts parley.  That means they can tap into the supply enough to spawn playgroups among themselves but that's about it.",
                       sprite:"FullHiggsSmile"},
                       {text:"That being said there are some pubs like Green Isle and Red Sands where their sort likes to drink that become a good place to find a game and if you're lucky add a handful of cards to your collection.",
                       sprite:"FullHiggsSmile"},
-                      {text:"Of course, I hope to change all that and turn my little Hideaway into the best place in the Courts to play AND get your hands on the latest cards. If I can get the non-soldiers in this place playing I think I'll stand to make a tidy little profit too which is nice!",
+                      {text:"Of course, I hope to change all that and turn my little Hideaway into the best place in the Courts to play AND get your hands on the latest cards. If I can get the civvies in this place playing I think I'll stand to make a tidy little profit too which is nice!",
                       sprite:"FullHiggsSmile"},
                     ],
       playerResponse:[{prompt:"How'd the game start out?", leadsTo:"altaBeginnings"}, {prompt:"What's the game supposed to be about?", leadsTo:"altaMeaning"},
@@ -2302,9 +2318,7 @@ let data={
   getLayers:function(){
     return ["Cards"];
   },
-  playerProfile:{
-    name:"Player"
-  },
+
   getProfile:function(){
     return JSON.parse(localStorage.getItem("playerProfile"));
   },
@@ -2323,10 +2337,13 @@ let data={
     return zones.gameBoard.board;
   },
   getPlayerDeck:function(){
-    return JSON.parse(localStorage.getItem("playerDeck"));
+    let profile=data.getProfile();
+    return profile.deck;
   },
   setPlayerDeck:function(newDeck){
-    localStorage.setItem('playerDeck', JSON.stringify(newDeck));
+    let profile=data.getProfile();
+    profile.deck=newDeck;
+    data.setProfile(profile);
   },
   getEnemy:function(){
     // return enemies[localStorage.getItem("currentEnemy")];
@@ -2366,15 +2383,10 @@ let data={
 
 if (localStorage.getItem("playerProfile") === null) {
 
-  localStorage.setItem('playerProfile', JSON.stringify({name:"Player"}));
-}
-
-
-
-if (localStorage.getItem("playerDeck") === null) {
+  localStorage.setItem('playerProfile', JSON.stringify(starterProfile));
   let player=window.prompt("Aster.  Cyrus.  Lumi.  Which are you?  Or are you another soul entirely?");
   let playerProfile=data.getProfile();
-  console.log()
+
   playerProfile.name=player;
   data.setProfile(playerProfile);
   data.sceneStats.activeScene="firstMeet";
@@ -2396,13 +2408,13 @@ if (localStorage.getItem("playerDeck") === null) {
 
   alert("A word of warning.  A possible reality is not without value, and your soul will surely grow from the experience.  But that value is a fleeting thing until you are able to both awake from your dream and keep a hand clutched around what you have gained here.");
 
-  if (player.toLowerCase()){
+  if (player.toLowerCase()=="aster"){
     alert("Please try to relax my Dear Host.  We will not be as entwined here as we often are but I will attempt to reach out when I can.");
   }else{alert("I will...attempt...to watch over you, as my Dear Host would wish of me.");}
-
-  localStorage.setItem('playerDeck', JSON.stringify(starterDeck));
-
 }
+
+
+
 
 
 

@@ -31,6 +31,13 @@ $shopBG:"../images/backgrounds/witch.png";
   100% {background-color: $lightBack;}
 }
 
+@keyframes heyListen{
+  0%   {background-color: $greyBack};
+  // 25%  {background-color: #d65a31};
+  50%  {background-color: $lightBack;}
+  100% {background-color: $greyBack;}
+}
+
 
 //
 
@@ -44,42 +51,40 @@ body{
 }
 .iconButton{
   cursor:pointer;
+  height:100px;
+  width:100px;
+  padding-right:5px;
+  background-size:cover;
 }
 
 #deckbuildButton{
-  background-size:cover;
+
   background-image:url('https://img.icons8.com/clouds/100/000000/blueprint-with-pen.png');
-  height:100px;
-  width:100px;
-  padding-right:5px;
+
   background-color:purple;
 }
 #shopButton{
-  background-size:cover;
+
   background-image:url('https://res.cloudinary.com/metaverse/image/upload/v1541010546/Avatars/Higgsy/side_higgsLaugh.png');
-  height:100px;
-  width:100px;
-  padding-right:5px;
+
   background-color:red;
 }
 #shopButton:hover{
   background-image:url('https://res.cloudinary.com/metaverse/image/upload/v1541010541/Avatars/Higgsy/side_higgsSnide.png');
 }
 #coinFlipButton{
-  background-size:cover;
-  height:100px;
-  width:100px;
-  padding-right:5px;
+
   background-color:yellow;
   background-image:url('https://img.icons8.com/cotton/256/000000/coin-in-hand.png');
 }
 #newGameButton{
-  background-size:cover;
+
   background-image:url('https://img.icons8.com/clouds/100/000000/ace-of-hearts--v1.png');
-  height:100px;
-  width:100px;
-  padding-right:5px;
+
   background-color:blue;
+}
+#settingsButton{
+  background-color:grey;
 }
 
 #shopBanner{
@@ -140,6 +145,7 @@ body{
     font-size:2.5em;
     padding:3px;
     color:$lightBack;
+    cursor:pointer;
 
 
 
@@ -166,12 +172,14 @@ body{
       justify-content:center;
       font-size:1.5em;
       padding-bottom:10px;
+      cursor:pointer;
     }
 
     .dialogueChunk{
       position:absolute;
       height:100%;
       width:100%;
+      cursor:pointer;
       .dialogueTracker{
         position:absolute;
         bottom:5%;
@@ -194,7 +202,7 @@ body{
     border-image: url(https://res.cloudinary.com/metaverse/image/upload/v1567881015/UI/card_back_black.png) 13 15 14 13;
     display:flex;
     flex-wrap:wrap;
-
+    cursor:pointer;
 
     #playerNamePlate{
       position:absolute;
@@ -211,11 +219,13 @@ body{
       justify-content:center;
       padding-bottom:25px;
       font-size:1.5em;
+      cursor:pointer;
     }
 
     .playerResponseButton{
       height:calc(#{$textboxHeight} / 3);
       width:20%;
+      cursor:pointer;
 
     }
   }
@@ -517,6 +527,12 @@ body{
   }
 }
 
+.waitingTab{
+  animation-name:heyListen;
+  animation-duration:2s;
+  animation-iteration-count:infinite;
+}
+
 .hidden{
   height:0 !important;
   width:0 !important;
@@ -558,6 +574,49 @@ body{
 }
 .closeButton:hover{
   cursor:pointer;
+}
+
+#volumeAdjustScreen{
+  position:fixed;
+  height:100vh;
+  width:100vw;
+  background-color:rgba(0, 0, 0, 0.6);
+  z-index:5;
+
+  #volumeSettings{
+    position:absolute;
+    top:20vh;
+    height:60vh;
+    left:30vw;
+    width:40vw;
+    background-color:white;
+    border: 3px solid black;
+    #volumeHeader{
+      height:10%;
+      border: 3px solid pink;
+    }
+    .audioRow{
+      height:30%;
+      border: 3px solid brown;
+    }
+  }
+}
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
 }
 
 .cardInHand{
