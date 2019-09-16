@@ -1,4 +1,7 @@
-
+///shuffling: targets.sort((a,b)=>{
+//   let sides=[-1,1];
+//     return sides[ci.dieRoll(2)-1];
+// });
 
 
 function enableDragging(){
@@ -199,20 +202,20 @@ let gameDisplay={
 
                   // invert colors
 
-                  for (let i = 0; i < imgData.data.length; i += 4) {
-                    imgData.data[i] = 255-imgData.data[i];
-                    imgData.data[i + 1] = 255-imgData.data[i + 1];
-                    imgData.data[i + 2] = 255-imgData.data[i + 2];
-                    imgData.data[i + 3] = 255;
-                  }
-
-                  //apply a spooky red tint
                   // for (let i = 0; i < imgData.data.length; i += 4) {
-                  //   imgData.data[i] = imgData.data[i]+25;
-                  //   imgData.data[i + 1] = imgData.data[i + 1]-30;
-                  //   imgData.data[i + 2] = imgData.data[i + 2]-30;
+                  //   imgData.data[i] = 255-imgData.data[i];
+                  //   imgData.data[i + 1] = 255-imgData.data[i + 1];
+                  //   imgData.data[i + 2] = 255-imgData.data[i + 2];
                   //   imgData.data[i + 3] = 255;
                   // }
+
+                  //apply a spooky red tint
+                  for (let i = 0; i < imgData.data.length; i += 4) {
+                    imgData.data[i] = imgData.data[i]+25;
+                    imgData.data[i + 1] = imgData.data[i + 1]-60;
+                    imgData.data[i + 2] = imgData.data[i + 2]-30;
+                    imgData.data[i + 3] = 255;
+                  }
 
                   ctx.putImageData(imgData, obj[i].xPos, obj[i].yPos);
 
@@ -293,7 +296,7 @@ let gameDisplay={
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     highlights.forEach((highlight)=>{
-      console.log("applying highlight?");
+
       effectLibrary[highlight.effect](ctx, highlight.cell);
     })
 
@@ -492,6 +495,9 @@ let gamePlay={
       let collection=Object.keys(cardLibrary);
       collection=collection.filter((card)=>{
         return !cardLibrary[card].hasPassive;
+      });
+      collection=collection.filter((card)=>{
+        return cardLibrary[card].hasTap;
       });
       enemy.deck=[];
       enemy.deck.push(validEnemyCommanders[ci.dieRoll(validEnemyCommanders.length)-1]);
@@ -1087,7 +1093,7 @@ let gameUI={
   showHand:function(){
     let handState=``;
     let hand=zones.p1Hand.heldCards;
-    console.log("calling show hand");
+
     hand.forEach((card, index)=>{
       handState+=`<img  data-position="${index}" class="cardInHand" src="${cardLibrary[card.name].cardArt}"></img>`;
       // handState+=`<img class="cardInHand" style="background-image:url(${cardLibrary[card.name].cardArt})"></img>`;
