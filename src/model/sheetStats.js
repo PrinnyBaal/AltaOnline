@@ -7,7 +7,8 @@
 
 let starterDeck=["LumiMaarit", "MiranScout", "AltambranDuelist", "PhilomanScholar", "RuneKnight", "SummerSavior", "TreeSinger", "WinterWarrior"];
 
-let validEnemyCommanders=["DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
+// let validEnemyCommanders=["DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
+let validEnemyCommanders=["KnightOfAmoracchius", "DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
 
 
 let starterProfile={
@@ -48,6 +49,8 @@ let eventHandler={
   announce:function(event){
     let board=zones.gameBoard.board;
     let portrait, text;
+    let units=data.getActiveUnits();
+    let enemies=units.enemies;
 
     switch(event){
       case "login":
@@ -134,6 +137,18 @@ let eventHandler={
 
       case "PlayerTurnEnd":
       case "EnemyTurnStart":
+      //rallying
+      for (let i=0, len=enemies.length; i<len; i++){
+        //check for rally
+        if (enemies[i].hasPassive){
+          enemies.forEach((enemy)=>{
+            if (enemy.tags.includes("Tapped")){
+              enemy.tags.splice(enemy.tags.indexOf("Tapped"), 1);
+            }
+          });
+        }
+        break;
+      }
       ///Parrying....
         for (let y=0; y<board.length; y++){
           for (let x=0; x<board[y].length; x++){
@@ -195,9 +210,10 @@ let eventHandler={
 
 let gameCalculations={
   isInCheck:function(gameCell){
+    //for enemies only
     let board=zones.gameBoard.board;
 
-    if (gameCell.y==3){
+    if (gameCell.y==board.length-1){
       return false;
     }
 
@@ -268,7 +284,91 @@ let gameCalculations={
     return false;
 
 
+  },
+  positioningValue:function(unit, newPosition){
+    let value=0;
+    let board=zones.gameBoard.board;
+    let victoryRow=board.length-1;
+    let homeRow=0;
+    let currentPos=unit.position;
+    //value gained for proximity to victory row
+    console.log("positininggggg...");
+    console.log(unit);
+    if (!unit.tags.includes("Unstoppable")){
+      if (newPosition.y==victoryRow){
+        value+=10000; //a masive number since this means we win.
+      }else{
+        value+=(25/(Math.abs(victoryRow-homeRow)));
+      }
+
+      //value lost for being threatened
+      if (gameCalculations.isInCheck(newPosition)){
+        value-=25;
+      }
+
+      //value gain if current square IS threatened
+      if(gameCalculations.isInCheck(currentPos)){
+        value+=10;
+      }
+
+      //value gained for being defended
+      if (gameCalculations.isDefended(newPosition)){
+        value+=25;
+      }
+      //value loss if current square IS defended and new square ISN'T
+      else if(gameCalculations.isDefended(currentPos)){
+        value-=5;
+      }
+
+
+    }
+    return value;
+  },
+  captureValue:function(unit, newPosition){
+    let value=25; //inherent bonus of 25 because capturing is sweeeeet
+    //value if being in or out of threatened reach is already factored in during positiong value
+
+    if (unit.tags.includes("Frenzy")){
+      value+=10;
+    }
+
+    if (unit.tags.includes("Unstoppable")){
+      value+=10;
+    }
+
+    return value;
+  },
+  getSurroundingCords:function(position){
+    let board=zones.gameBoard.board;
+    let eastBound= position.x==0? true:false;
+    let westBound= position.x==board[0].length-1? true:false;
+    let northBound=position.y==0? true:false;
+    let southBound=position.y==board.length-1? true:false;
+    let surroundingCords=[];
+    let x=position.x;
+    let y=position.y;
+
+    if (!northBound){
+      if(!eastBound){surroundingCords.push({y:y-1, x:x-1})}
+      surroundingCords.push({y:y-1, x:x});
+      if (!westBound){surroundingCords.push({y:y-1, x:x+1})}
+    }
+
+    if(!eastBound){surroundingCords.push({y:y, x:x-1})}
+    surroundingCords.push({y:y, x:x});
+    if (!westBound){surroundingCords.push({y:y, x:x+1})}
+
+    if (!southBound){
+      if(!eastBound){surroundingCords.push({y:y+1, x:x-1})}
+      surroundingCords.push({y:y+1, x:x});
+      if (!westBound){surroundingCords.push({y:y+1, x:x+1})}
+    }
+
+    return surroundingCords;
+
+
   }
+
 }
 
 zones.gameBoard.board=starterGameBoard();
@@ -439,6 +539,16 @@ let Construct={
         range.y*=-1;
       });
     };
+
+    this.getTapAbility=function(){
+      if (!this.hasTap){
+          return false;
+        }else{
+          let ability= this.abilitySlot1.type=="Tap"? this.abilitySlot1:this.abilitySlot2;
+          return ability;
+        }
+
+    }
 
     if (!ability){
       ability=[];
@@ -621,6 +731,7 @@ let Construct={
 
         let board, startSpace, endSpace, cappedSpace;
         let actionTakenBy=false;
+        let holdTurn=false;
 
         switch(action.actionType){
           case "movement":
@@ -674,6 +785,12 @@ let Construct={
 
             break;
 
+          case "ability":
+            console.log(action);
+            action.actionInfo.ability.effect.call(action.actionInfo.user);
+            if (action.holdTurn){holdTurn=true};
+            break;
+
           default:
             console.log(`${action.actionType} is not a recognized action for takeAction`);
             break;
@@ -686,11 +803,16 @@ let Construct={
 
           }
 
-          console.log("passing turn to player");
-          gameDisplay.setCardImages();
-          data.gamePhase="unitSelect";
-          eventHandler.announce("PlayerTurnStart");
-          this.checkVictory();
+          if(!holdTurn){
+            console.log("passing turn to player");
+            gameDisplay.setCardImages();
+            data.gamePhase="unitSelect";
+            eventHandler.announce("PlayerTurnStart");
+            this.checkVictory();
+          }else{
+            this.takeAction(this.chooseAction());
+          }
+
 
       }
 
@@ -698,6 +820,7 @@ let Construct={
     }
 
   },
+
 
 }
 };
@@ -881,8 +1004,13 @@ let tapLibrary={
     passTurn:true, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen, uses call to make 'this' refer to the card that calls it
       let portrait, text;
+      let ability=tapLibrary["WhenNeeded"];
+      let useCase;
+      console.log(this);
       if(!this.tags.includes("Tapped")){this.tags.push("Tapped");}
-      if (this.friendly){data.gamePhase="effectSelect"; zones.p1Status.resolvingEffect={name:"WhenNeeded", triggeringCard:this};
+      if (this.friendly){
+        data.gamePhase="effectSelect";
+        zones.p1Status.resolvingEffect={name:"WhenNeeded", triggeringCard:this};
         portrait=avatarLibrary["HiggsHappy"];
         text=`You've just activated 'When Needed'.  It lets your unit fly to the defense of one of your other cards.`;
         gameUI.toBattleLog(portrait, text);
@@ -894,6 +1022,12 @@ let tapLibrary={
         gameUI.toBattleLog(portrait, text);
         portrait=avatarLibrary["HiggsHappy"];
         text=`See?  Threatened but not checked!`;
+        gameUI.toBattleLog(portrait, text);
+      }else{
+        useCase=ability.bestTarget.call(this);
+        ability.targetEffect.call(this, useCase);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Wahaha!  Carpenter activated!!`;
         gameUI.toBattleLog(portrait, text);
       }
     },
@@ -937,7 +1071,7 @@ let tapLibrary={
       for (let i=0, len=checkedAllies.length; i<len; i++){
         if(Math.abs(checkedAllies[i].position.y-targetPos.y)<=1 && Math.abs(checkedAllies[i].position.x-targetPos.x)<=1){
           //space is valid
-          board[targetPos.y][targetPos.x]=board[this.position.y].splice(this.position.x, 1)[0];
+          board[targetPos.y][targetPos.x]=board[this.position.y].splice(this.position.x, 1, false)[0];
           board[targetPos.y][targetPos.x].position=targetPos;
           return true;
         }
@@ -945,11 +1079,119 @@ let tapLibrary={
 
       return false;
 
+    },
+    estimateValue:function(){
+      return tapLibrary["WhenNeeded"].bestTarget.call(this).value;
+      //value here is fairyl light.  We don't worry about being captured which is cool, but at best it sets us up to recap something.  Don't want it wasting much time doing this.
+    },
+    bestTarget:function(){
+      let tags=this.tags;
+      let board=zones.gameBoard.board;
+      let allUnits=data.getActiveUnits();
+      let allyUnits= this.friendly ? allUnits.allies:allUnits.enemies;
+      let enemyUnits= !this.friendly ? allUnits.allies:allUnits.enemies;
+
+      let checkedAllies=[];
+      let availableTargets=[];
+      let actingUnit=this;
+
+
+
+      allyUnits=allyUnits.filter((ally)=>{
+        if (ally.position.x==this.position.x && ally.position.y==this.position.y){
+          return false
+        }else{
+          return true
+        }
+      });
+
+      allyUnits.forEach((ally)=>{
+        let capRange;
+        let allyChecked=false;
+        for (let i=0, len=enemyUnits.length; i<len && !allyChecked; i++){
+          for (let j=0, caps=enemyUnits[i].captureRanges.length; j<caps && !allyChecked;j++){
+            capRange=enemyUnits[i].captureRanges[j];
+            if (enemyUnits[i].position.x+capRange.x==ally.position.x && enemyUnits[i].position.y+capRange.y==ally.position.y){
+              allyChecked=true;
+            }
+          }
+        }
+        if (allyChecked){
+          checkedAllies.push(ally);
+        }
+
+      });
+
+      for (let i=0, len=checkedAllies.length; i<len; i++){
+        console.log("this one is checked");
+        console.log(checkedAllies[i]);
+        checkSurroundingCells(checkedAllies[i].position);
+        console.log(availableTargets);
+      }
+
+
+      availableTargets.forEach((target)=>{
+        let targetValue=0;
+        targetValue+=gameCalculations.positioningValue(this, target);
+        for (let c=0, caps=actingUnit.captureRanges.length; c<caps; c++){
+          for (let i=0, len=allyUnits.length; i<len; i++){
+            console.log(actingUnit);
+            console.log(allyUnits);
+            if (target.x+actingUnit.captureRanges[c].x==allyUnits[i].position.x && target.y+actingUnit.captureRanges[c].y==allyUnits[i].position.y){
+              console.log("+25!");
+              targetValue+=25;
+            }
+          }
+        }
+
+        target.value=targetValue;
+
+      });
+
+
+      availableTargets.sort(function(a,b){
+        return b.value-a.value;
+      });
+
+
+      return availableTargets[0];
+
+      function checkSurroundingCells(position){
+        let x=position.x;
+        let y=position.y;
+        if (position.y!=0){
+          if (position.x!=0 && !board[position.y-1][position.x-1]){
+
+              availableTargets.push({x:x-1, y:y-1});
+
+          }
+
+          if (!board[position.y-1][position.x]){
+            availableTargets.push({x:x, y:y-1});
+          }
+
+          if (position.x!=board[0].length-1 && !board[position.y-1][position.x+1]){
+            availableTargets.push({x:x+1, y:y-1});
+          }
+        }
+
+        if (position.x!=0 && !board[position.x-1][position.y]){availableTargets.push({x:x-1, y:y});}
+        // if (!board[position.x][position.y]){return true;}
+        if (position.x!=board[0].length-1 && !board[position.x+1][position.y]){availableTargets.push({x:x+1, y:y});}
+
+        if (position.y!=board.length-1){
+          if (position.x!=0 && !board[position.y+1][position.x-1]){availableTargets.push({x:x-1, y:y+1});}
+          if (!board[position.y+1][position.x]){availableTargets.push({x:x, y:y+1});}
+          if (position.x!=board[0].length-1 && !board[position.y+1][position.x+1]){availableTargets.push({x:x+1, y:y+1});}
+        }
+
+      }
     }
   },//playerDone
-  PrincesBinding:{//woo discover mechanic is in and works pretty well!
+  PrincesBinding:{//Currently false for enemy
     name:"PrincesBinding",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
+      if (!this.friendly){return false};
       let cappedUnits= this.friendly? zones.p1Captured.capturedUnits:zones.p2Captured.capturedUnits;
       let tapAbility;
       for (let i=0, len=cappedUnits.length; i<len; i++){
@@ -1016,10 +1258,15 @@ let tapLibrary={
 
     },
     hasDiscover:true,
+    estimateValue:function(){
+      return -5000;
+      //uggghhhhhhhhhhhhhhhhh, leave these abilities that copy abilities for last.
+    }
   },
-  WildMage:{ //in theory it's currently active for players but requires some UI polishing
+  WildMage:{ //Gaaahhhhhhhhhhhhh
     name:"WildMage",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
+      if(!this.friendly){return false;}
       let tags=this.tags;
       let deck= this.friendly? zones.p1Deck.deck: zones.p2Deck.deck;
       if (tags.includes("Tapped") ||!deck.length){return false;}
@@ -1128,12 +1375,18 @@ let tapLibrary={
       }
 
 
+    },
+    estimateValue:function(){
+      return -5000;
+      //uggghhhhhhhhhhhhhhhhh, leave these abilities that copy abilities for last.
     }
   },
-  Whisper:{ //screw it, skip this one.  requires activate->choose
+  Whisper:{ //Gahhhhhhhhhhhhh
     name:"Whisper",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
-      return false;
+      if(!this.friendly){return false;}
+      if (this.tags.includes("Tapped")){return false}
+      return true
     },
     passTurn:false, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen
@@ -1148,9 +1401,13 @@ let tapLibrary={
     },
     targetEffect:function(){
 
+    },
+    estimateValue:function(){
+      return -5000;
+      //uggghhhhhhhhhhhhhhhhh, leave these abilities that copy abilities for last.
     }
   },
-  Champion:{ //should work for allies now, in theory
+  Champion:{ //Should work for enemies!
     name:"Champion",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
 
@@ -1193,36 +1450,84 @@ let tapLibrary={
     },
     passTurn:false, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen
-      let portrait, text;
+      let portrait, text, bestTarget;
       if(!this.tags.includes("Tapped")){this.tags.push("Tapped");}
-      if (this.friendly){data.gamePhase="effectSelect"; zones.p1Status.resolvingEffect={name:"Champion", triggeringCard:this};}
-      portrait=avatarLibrary["HiggsHappy"];
-      text=`Protect your allies o valiant champion!  Click any friendly card adjacent to the one you just activated and until the start of your next turn it can't be captured.`;
-      gameUI.toBattleLog(portrait, text);
-      portrait=avatarLibrary["HiggsHappy"];
-      text=`This doesn't eat up your turn so be ready to choose another action afterwards.`;
-      gameUI.toBattleLog(portrait, text);
+      if (this.friendly){
+        data.gamePhase="effectSelect"; zones.p1Status.resolvingEffect={name:"Champion", triggeringCard:this};
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Protect your allies o valiant champion!  Click any friendly card adjacent to the one you just activated and until the start of your next turn it can't be captured.`;
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`This doesn't eat up your turn so be ready to choose another action afterwards.`;
+        gameUI.toBattleLog(portrait, text);
+      }else{
+        bestTarget=tapLibrary["Champion"].getBestTarget.call(this);
+        tapLibrary["Champion"].targetEffect.call(this, bestTarget);
+      }
+
     },
     targetEffect:function(targetPos){
       let board=zones.gameBoard.board;
       let targetCell=board[targetPos.y][targetPos.x];
+      let ally= this.friendly;
 
-      if (targetCell && targetCell.friendly){
-        if (targetCell.tags.includes("Defended")){targetCell.tags.push("Defended");}
+      if (targetCell && targetCell.friendly==ally){
+        if (!targetCell.tags.includes("Defended")){targetCell.tags.push("Defended");}
 
         return true;
       }
       else{
         return false;
       }
+    },
+    estimateValue:function(){
+      let board=zones.gameBoard.board;
+      let surrounding=gameCalculations.getSurroundingCords(this.position);
+      let value= gameCalculations.isInCheck(this.position)? -10:0;
+
+      surrounding.forEach((cell)=>{
+        if (board[cell.y][cell.x] && !board[cell.y][cell.x].friendly){
+          if(gameCalculations.isInCheck(board[cell.y][cell.x].position)){
+            value+=10;
+          }
+        }
+      });
+      return value;
+      //not a bad thing to do, and it's basically free.  Shouldn't do so if the creature it would buff isn't in danger
+    },
+    getBestTarget:function(){
+      let board=zones.gameBoard.board;
+      let surrounding=gameCalculations.getSurroundingCords(this.position);
+      let value= gameCalculations.isInCheck(this.position)? -10:0;
+      let targets=[];
+
+      surrounding.forEach((cell)=>{
+        let target;
+        if (board[cell.y][cell.x] && !board[cell.y][cell.x].friendly){
+          if(gameCalculations.isInCheck(board[cell.y][cell.x].position)){
+            target={x:cell.x, y:cell.y, value:10};
+            if (board[cell.y][cell.x].tags.includes("Unstoppable") || board[cell.y][cell.x].tags.includes("Defended")){
+              target.value-=20;
+            }
+            targets.push(target);
+          }
+        }
+
+      });
+      targets.sort((a,b)=>{
+        b.value-a.value;
+      });
+      return targets[0];
+
     }
   },
   Chooser:{//available now with discover!
     name:"Chooser",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
       let cappedUnits= this.friendly? zones.p1Captured.capturedUnits:zones.p2Captured.capturedUnits;
-      let homeRow=this.friendly? 3:0;
       let board=zones.gameBoard.board;
+      let homeRow=this.friendly? board.length-1:0;
+
 
       if (this.tags.includes("Tapped") || this.tags.includes("ChoiceMade") || !cappedUnits.length){
         return false;
@@ -1240,8 +1545,9 @@ let tapLibrary={
     passTurn:true, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen
       let cappedUnits= this.friendly? zones.p1Captured.capturedUnits:zones.p2Captured.capturedUnits;
-      let homeRow=this.friendly? 3:0;
       let board=zones.gameBoard.board;
+      let homeRow=this.friendly? board.length-1:0;
+
       let cardArray=[];
       let portrait, text;
       if(!this.tags.includes("Tapped")){this.tags.push("Tapped");}
@@ -1270,21 +1576,30 @@ let tapLibrary={
       if (this.friendly){
         data.gamePhase="discovering";
         gamePlay.launchDiscover(cardArray);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Ooo, fun one.  Remember you can only use this ability ONCE in the entire match, are you sure you wanna do it now?`;
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsSnide"];
+        text=`If not, too bad no take backs in my shop!  So after you've picked which card you want to ressurect under your power...`;
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`...just plop it down anywhere on your home row by clicking on the cell you wanna jam it into.`;
+        gameUI.toBattleLog(portrait, text);
+      }else{
+        let bestCard=tapLibrary["Chooser"].bestChosen();
+        let bestSlot=tapLibrary["Chooser"].bestTarget();
+        zones.p2Status.resolvingEffect={ridingCard:bestCard};
+        tapLibrary["Chooser"].targetEffect.call(this, bestSlot);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`RISE from the abyss and follow my dread command!  Muahahaha!`;
+        gameUI.toBattleLog(portrait, text);
       }
-      portrait=avatarLibrary["HiggsHappy"];
-      text=`Ooo, fun one.  Remember you can only use this ability ONCE in the entire match, are you sure you wanna do it now?`;
-      gameUI.toBattleLog(portrait, text);
-      portrait=avatarLibrary["HiggsSnide"];
-      text=`If not, too bad no take backs in my shop!  So after you've picked which card you want to ressurect under your power...`;
-      gameUI.toBattleLog(portrait, text);
-      portrait=avatarLibrary["HiggsHappy"];
-      text=`...just plop it down anywhere on your home row by clicking on the cell you wanna jam it into.`;
-      gameUI.toBattleLog(portrait, text);
+
 
     },
     targetEffect:function(targetPos){
-      let homeRow=this.friendly? 3:0;
       let board=zones.gameBoard.board;
+      let homeRow=this.friendly? board.length-1:0;
       let prisoner= this.friendly ? zones.p1Status.resolvingEffect.ridingCard:zones.p2Status.resolvingEffect.ridingCard;
       let capZone=this.friendly? zones.p1Captured.capturedUnits:zones.p2Captured.capturedUnits;
       let capIndex;
@@ -1306,6 +1621,27 @@ let tapLibrary={
 
     },
     hasDiscover:true,
+    estimateValue:function(){
+      return 15;
+      //almost always a strong play, bet less valuable then capturing generally since that often means SHE can be captured
+    },
+    bestTarget:function(){
+      let board=zones.gameBoard.board;
+      let homeRow=this.friendly? board.length-1:0;
+      let targets=[];
+
+      for (let x=0, len=board[0].length; x<len; x++){
+        if(board[homeRow][x]){
+          targets.push({y:homeRow, x:x});
+        }
+      }
+      targets.sort((a,b)=>{
+        let sides=[-1,1];
+          return sides[ci.dieRoll(2)-1];
+      });
+      return targets[0];
+
+    }
   },
   TrialOfWings:{//untested but SHOULD work just fine for players now
     name:"TrialOfWings",
@@ -1317,12 +1653,25 @@ let tapLibrary={
     },
     passTurn:true, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen
+      let protrait, text;
       this.tags.push("Ascended");
       this.moveRanges=[{x:0, y:-1}, {x:0,y:-2}];
       this.captureRanges=[{x:1, y:-1}, {x:2, y:-2}, {x:-1,y:-1}, {x:-1,y:-2}];
       if (!this.friendly){
         this.flipY();
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`To the skies!  Honestly dragons kinda freak me out, but I really like evolving cards~`;
+        gameUI.toBattleLog(portrait, text);
       }
+    },
+    estimateValue:function(){
+      if (gameCalculations.isInCheck(this.position)){
+        return -25; //a terrible play since the creature can just be gobbled up...
+      }else{
+        return 15;
+      }
+
+      //A strong play but keeping it below 25 to ensure it doesn't use it while in threat of being capped
     }
   },
   DemandSatisfaction:{//in theory this should work now
@@ -1347,13 +1696,19 @@ let tapLibrary={
     effect:function(){//causes something to happen
       let portrait, text;
       if(!this.tags.includes("Tapped")){this.tags.push("Tapped");}
-      if (this.friendly){data.gamePhase="effectSelect"; zones.p1Status.resolvingEffect={name:"DemandSatisfaction", triggeringCard:this};}
-      portrait=avatarLibrary["HiggsExasperated"];
-      text=`*hum*  It's the ten duel commandments~  *hum*  `;
-      gameUI.toBattleLog(portrait, text);
-      portrait=avatarLibrary["HiggsSnide"];
-      text=`Oh!  uh, right, so your duelist can demand that an enemy unit fight him.  Click an enemy that's to your duelist's left or right.  Oh!  And remember that effects that would prevent normal captures apply to this as well.`;
-      gameUI.toBattleLog(portrait, text);
+      if (this.friendly){
+        data.gamePhase="effectSelect"; zones.p1Status.resolvingEffect={name:"DemandSatisfaction", triggeringCard:this};
+        portrait=avatarLibrary["HiggsExasperated"];
+        text=`*hum*  It's the ten duel commandments~  *hum*  `;
+        gameUI.toBattleLog(portrait, text);
+        portrait=avatarLibrary["HiggsSnide"];
+        text=`Oh!  uh, right, so your duelist can demand that an enemy unit fight him.  Click an enemy that's to your duelist's left or right.  Oh!  And remember that effects that would prevent normal captures apply to this as well.`;
+        gameUI.toBattleLog(portrait, text);
+      }else{
+        let bestTarget=tapLibrary["DemandSatisfaction"].getBestTarget.call(this);
+        tapLibrary["DemandSatisfaction"].targetEffect.call(this, bestTarget);
+      }
+
     },
     targetEffect:function(targetPos){
       let board=zones.gameBoard.board;
@@ -1374,6 +1729,31 @@ let tapLibrary={
       }else{
         return false;
       }
+
+    },
+    estimateValue:function(){
+      return 25;
+      //A strong play since a cap is a cap
+    },
+    getBestTarget:function(){
+      let board=zones.gameBoard.board;
+      let allUnits=data.getActiveUnits();
+      let enemyUnits= !this.friendly ? allUnits.allies:allUnits.enemies;
+      let targets=[];
+      for (let i=0, len=enemyUnits.length; i<len; i++){
+        if (Math.abs(enemyUnits[i].position.x-this.position.x)==1 && enemyUnits[i].position.y==this.position.y
+        && !enemyUnits[i].tags.includes("Defended") && !enemyUnits[i].tags.includes("Unstoppable")){
+
+          targets.push({x:enemyUnits[i].position.x, y:enemyUnits[i].position.y});
+        }
+      }
+
+      //currently it doesn't really care about the value of capping and just randomly chooses
+      targets.sort((a,b)=>{
+        let sides=[-1,1];
+          return sides[ci.dieRoll(2)-1];
+      });
+      return targets[0];
 
     }
   },
@@ -1405,6 +1785,10 @@ let tapLibrary={
         text=`Ensnare lets you drag an enemy card closer to the card that you just tapped.  Click any enemy card in the same column as that card (and at least two spaces away) and it'll move one square closer whether up or down on the board.`;
         gameUI.toBattleLog(portrait, text);
       }
+      else{
+        let bestTarget=tapLibrary["Ensnare"].getBestTarget.call(this);
+        tapLibrary["Ensnare"].targetEffect.call(this, bestTarget);
+      }
 
     },
     targetEffect:function(targetPos){
@@ -1421,6 +1805,32 @@ let tapLibrary={
       }
 
       return false;
+    },
+    getBestTarget:function(){
+      let board=zones.gameBoard.board;
+      let allUnits=data.getActiveUnits();
+      let enemyUnits= !this.friendly ? allUnits.allies:allUnits.enemies;
+      let forward;
+      let targets=[];
+
+      if (this.tags.includes("Tapped")){return false;}
+      for (let i=0, len=enemyUnits.length; i<len; i++){
+        forward=enemyUnits[i].position.y>this.position.y ? -1:1;
+        if (enemyUnits[i].position.x==this.position.x && Math.abs(enemyUnits[i].position.y-this.position.y)>1 &&
+            !board[enemyUnits[i].position.y+forward][enemyUnits[i].position.x]){
+
+          targets.push(enemyUnits[i].position);
+        }
+      }
+      targets.sort((a,b)=>{
+        let sides=[-1,1];
+          return sides[ci.dieRoll(2)-1];
+      });
+      return targets[0];
+    },
+    estimateValue:function(){
+      return 5;
+      //Can be a strong play but honestly just do if there's nothing that's obviously better
     }
   },
   SeekTheMountain:{//in theory, all set for player
@@ -1433,7 +1843,10 @@ let tapLibrary={
 
       for (let i=0, len=allUnits.length; i<len; i++){
         if (allUnits[i].position.x==this.position.x && allUnits[i].position.y-forward==this.position.y){
-          return true;
+          if(board[this.position.y+forward] && (board[this.position.y+forward][this.position.x-1]===false || board[this.position.y+forward][this.position.x+1]===false)){
+            return true;
+          }
+
         }
       }
 
@@ -1448,6 +1861,13 @@ let tapLibrary={
       text=`Some people won't be distracted from their aspirations.  Click an open space diagonally left or diagonally right from the card you just tapped, letting you sidestep the unit rudely clogging up the space in front of it.`;
       gameUI.toBattleLog(portrait, text);
     }
+      else{
+        let bestTarget=tapLibrary["SeekTheMountain"].getBestTarget.call(this);
+        tapLibrary["SeekTheMountain"].targetEffect.call(this, bestTarget);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Don't might me just gonna use Seek The Mountain to sliiide on by`;
+        gameUI.toBattleLog(portrait, text);
+      }
     },
     targetEffect:function(targetPos){
       let board=zones.gameBoard.board;
@@ -1461,6 +1881,31 @@ let tapLibrary={
       }
 
       return false;
+    },
+    getBestTarget:function(){
+
+      let board=zones.gameBoard.board;
+      let allUnits=data.getActiveUnits();
+      allUnits=[...allUnits.allies, ...allUnits.enemies];
+      let forward= this.friendly? -1:1;
+      let targets=[];
+      if (board[this.position.y+forward][this.position.x-1]===false){
+        targets.push({x:this.position.x-1, y:this.position.y+forward});
+      }
+      if (board[this.position.y+forward][this.position.x+1]===false){
+        targets.push({x:this.position.x+1, y:this.position.y+forward});
+      }
+
+
+      targets.sort((a,b)=>{
+        let sides=[-1,1];
+          return sides[ci.dieRoll(2)-1];
+      });
+      return targets[0];
+    },
+    estimateValue:function(){
+      return 10;
+      //its probably a high value move but potentially a dangerous one as well
     }
   },
   SeekTruth:{//onhold until discover mechanic
@@ -1507,13 +1952,38 @@ let tapLibrary={
         portrait=avatarLibrary["HiggsHappy"];
         text=`It's not very useful outside of pretty specific strategies but it doesn't eat up your turn.`;
         gameUI.toBattleLog(portrait, text);
+      }else{
+        let onTop=ci.dieRoll(2)-1;
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Mm, I'm gonna use Seek Treth and scry...`;
+        gameUI.toBattleLog(portrait, text);
+        if (onTop){
+
+          portrait=avatarLibrary["HiggsHappy"];
+          text=`Hmm, yeah that one's alright, I'll leave it on top`;
+          gameUI.toBattleLog(portrait, text);
+        }else{
+          portrait=avatarLibrary["HiggsHappy"];
+          text=`Meh, I think I can set myself for next round better.  I'll ship this one to the bottom.`;
+          gameUI.toBattleLog(portrait, text);
+          ci.array_move(deck, 0, deck.length-1);
+        }
+
       }
     },
     hasDiscover:true,
+    estimateValue:function(){
+      return 0;
+      //hyper low value but almost no cost.  Feel free I guess
+    }
   },
   Doctrine:{//onhold until enemy powers are online
     name:"Doctrine",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
+      if (!this.friendly){return false}
+      if (this.tags.includes("Tapped")){
+        return false;
+      }
     },
     passTurn:false, //whether or not this ability passes the turn.  ,
     effect:function(){//causes something to happen
@@ -1521,6 +1991,10 @@ let tapLibrary={
       portrait=avatarLibrary["HiggsMad"];
       text=`Uhm...okay so that's a pretty strong ability but I'm not using any tap abilities until you get a better hang of the game anyway.  It's no biggie we'll just leave it tapped and you can take another action~`;
       gameUI.toBattleLog(portrait, text);
+    },
+    estimateValue:function(){
+      return 10;
+      //its probably a high value move but needs tinkering to know if its in danger
     }
   },
   KingsCastle:{ //should be active player-side
@@ -1528,7 +2002,8 @@ let tapLibrary={
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
       if (this.tags.includes("Tapped")){return false;}
       let allUnits=data.getActiveUnits();
-      if (allUnits.allies.length>1){
+      let allies=this.friendly? allUnits.allies:allUnits.enemies;
+      if (allies.length>1){
         return true
       }else{
         return false
@@ -1543,13 +2018,21 @@ let tapLibrary={
       portrait=avatarLibrary["HiggsHappy"];
       text=`King's Castle lets you swap the locations of the card you tapped with any other allied card.  And after you do you don't pass the turn!`;
       gameUI.toBattleLog(portrait, text);}
+      else{
+        let bestTarget=tapLibrary["KingsCastle"].getBestTarget.call(this);
+        tapLibrary["KingsCastle"].targetEffect.call(this, bestTarget);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`My king shall castle!  Heh, that brings back memories.`;
+        gameUI.toBattleLog(portrait, text);
+      }
     },
     targetEffect:function(targetPos){
       let board=zones.gameBoard.board;
       let targetCell=board[targetPos.y][targetPos.x];
+      let allegiance=this.friendly;
+      let tempHome; //how the hell wasn't this function breaking before I declared this?
 
-
-      if (targetCell && targetCell.friendly && (targetPos.x!=this.position.x || targetPos.y!=this.position.y)){
+      if (targetCell && targetCell.friendly==allegiance && (targetPos.x!=this.position.x || targetPos.y!=this.position.y)){
         tempHome=board[targetPos.y].splice(targetPos.x, 1, false)[0];
         board[targetPos.y][targetPos.x]=board[this.position.y].splice(this.position.x, 1, false)[0];
         board[this.position.y][this.position.x]=tempHome;
@@ -1557,14 +2040,38 @@ let tapLibrary={
         board[targetPos.y][targetPos.x].position=targetPos;
         gameDisplay.setCardImages();
         return true;
+      }else{
+
       }
 
       return false;
+    },
+    estimateValue:function(){
+      return 5;
+      //cute I wanna see her do it unless she has anything stronger
+    },
+    getBestTarget:function(){
+      let allUnits=data.getActiveUnits();
+      let allies=this.friendly? allUnits.allies:allUnits.enemies;
+      let targets=[];
+      allies.forEach((ally)=>{
+        if (ally.position.x!=this.position.x || ally.position.y !=this.position.y){
+          targets.push(ally.position);
+        }
+      });
+
+      targets.sort((a,b)=>{
+        let sides=[-1,1];
+          return sides[ci.dieRoll(2)-1];
+      });
+
+      return targets[0];
     }
   },
   FromFlameToFreedom:{//onhold until discover mechanic
     name:"FromFlameToFreedom",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
+
       let discard= this.friendly? zones.p1Discard.discardedUnits:zones.p2Discard.discardedUnits;
       if (this.tags.includes("Tapped") || !discard.length){
         return false;
@@ -1577,48 +2084,75 @@ let tapLibrary={
     effect:function(){//causes something to happen
       let cardArray=[];
       let discard= this.friendly? zones.p1Discard.discardedUnits:zones.p2Discard.discardedUnits;
+      let actionArray=[];
 
-      discard.forEach((soul, index)=>{
-        let cardObj={};
-
-
-
-        cardObj.cardURL=cardLibrary[soul.name].cardArt;
-        cardObj.cardClick=()=>{
-              let deck=this.friendly? zones.p1Deck.deck:zones.p2Deck.deck;
-              let discard= this.friendly? zones.p1Discard.discardedUnits:zones.p2Discard.discardedUnits;
-              let board=zones.gameBoard.board;
-              deck.push(board[this.position.y].splice(this.position.x,1,false)[0]);
-              board[this.position.y][this.position.x]=discard.splice(index, 1)[0];
-              board[this.position.y][this.position.x].position={x:this.position.x, y:this.position.y}
-
-              gameDisplay.setCardImages();
-              gamePlay.checkVictory();
-
-              data.gamePhase="unitSelect";
-
-            };
-        cardObj.arguments=[];
-        cardArray.push(cardObj);
-      });
 
       if (this.friendly){
+        discard.forEach((soul, index)=>{
+          let cardObj={};
+
+
+
+          cardObj.cardURL=cardLibrary[soul.name].cardArt;
+          cardObj.cardClick=()=>{
+                let deck=this.friendly? zones.p1Deck.deck:zones.p2Deck.deck;
+                let discard= this.friendly? zones.p1Discard.discardedUnits:zones.p2Discard.discardedUnits;
+                let board=zones.gameBoard.board;
+                deck.push(board[this.position.y].splice(this.position.x,1,false)[0]);
+                board[this.position.y][this.position.x]=discard.splice(index, 1)[0];
+                board[this.position.y][this.position.x].position={x:this.position.x, y:this.position.y}
+
+                gameDisplay.setCardImages();
+                gamePlay.checkVictory();
+
+                data.gamePhase="unitSelect";
+
+              };
+          cardObj.arguments=[];
+          cardArray.push(cardObj);
+        });
         data.gamePhase="discovering";
         gamePlay.launchDiscover(cardArray);
+
+      }else{
+        let deck=this.friendly? zones.p1Deck.deck:zones.p2Deck.deck;
+        let board=zones.gameBoard.board;
+
+        discard.forEach((soul, index)=>{
+          let val=0;
+          if (soul.hasTap){
+            val+=10;
+          }
+          if (soul.hasPassive){
+            val+=15;
+          }
+          actionArray.push({index:index, value:val});
+        });
+        actionArray.sort((a,b)=>{
+          b.value-a.value;
+        });
+
+        deck.push(board[this.position.y].splice(this.position.x,1,false)[0]);
+        board[this.position.y][this.position.x]=discard.splice(actionArray[0].index, 1)[0];
+        board[this.position.y][this.position.x].position={x:this.position.x, y:this.position.y}
       }
     },
     targetEffect:function(){
 
     },
     hasDiscover:true,
-
+    estimateValue:function(){
+      return 10;
+      //cute
+    }
   },
   Encore:{//should be available now to player
     name:"Encore",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
       if (this.tags.includes("Tapped")){return false;}
       let allUnits=data.getActiveUnits();
-      if (allUnits.allies.length>1){
+      let allies= this.friendly? allUnits.allies:allUnits.enemies;
+      if (allies.length>1){
         return true
       }else{
         return false
@@ -1635,12 +2169,21 @@ let tapLibrary={
         portrait=avatarLibrary["HiggsHappy"];
         text=`The card you tapped can inspire them to make an Encore though!  Click any tapped allied card and you can snap them back to attention, then keep taking your turn!`;
         gameUI.toBattleLog(portrait, text);}
+      else{
+        let bestTarget=tapLibrary["Encore"].getBestTarget.call(this);
+        tapLibrary["Encore"].targetEffect.call(this, bestTarget);
+        portrait=avatarLibrary["HiggsHappy"];
+        text=`Tap me ba~by, one more time...`;
+        gameUI.toBattleLog(portrait, text);
+
+      }
       },
     targetEffect:function(targetPos){
       let board=zones.gameBoard.board;
       let targetCell=board[targetPos.y][targetPos.x];
+      let allegiance=this.friendly;
 
-      if (targetCell && targetCell.friendly){
+      if (targetCell && targetCell.friendly==allegiance){
         if(targetCell.tags.includes("Tapped")){
           targetCell.tags.splice(targetCell.tags.indexOf("Tapped"), 1);
         }
@@ -1650,8 +2193,49 @@ let tapLibrary={
 
       return false;
     },
+    estimateValue:function(){
+      let allUnits=data.getActiveUnits();
+      let allies= this.friendly? allUnits.allies:allUnits.enemies;
+      let value=-10;
+      let potentialValue, tapAbility;//plan was to call the estimate of their tap abilities but that could lead to a recursive function if, for example, you wind up with TWO treesingers
+
+      for (let i=0, len=allies.length; i<len; i++){
+        if (allies[i].hasTap && allies[i].tags.includes("Tapped")){
+          // tapAbility=allies[i].getTapAbility();
+          // tapAbility=tapLibrary
+          // potentialValue=
+          value=10;
+          break;
+        }
+      }
+      return value;
+      //cute
+    },
+    getBestTarget:function(){
+      let allUnits=data.getActiveUnits();
+      let allies= this.friendly? allUnits.allies:allUnits.enemies;
+      let value=-10;
+      let potentialValue, tapAbility;//plan was to call the estimate of their tap abilities but that could lead to a recursive function if, for example, you wind up with TWO treesingers
+      let targets=[];
+      //will cause a recursive loop if the enemy has no better actions and ever gets two cards with the Encore ability
+      for (let i=0, len=allies.length; i<len; i++){
+        if(allies[i].position.x!=this.position.x || allies[i].position.y!=this.position.y){
+          if (allies[i].hasTap && allies[i].tags.includes("Tapped")){
+            targets.push({x:allies[i].position.x, y:allies[i].position.y, value:10});
+          }else{
+            targets.push({x:allies[i].position.x, y:allies[i].position.y, value:0});
+          }
+        }
+
+      }
+
+      targets.sort((a,b)=>{
+        b.value-a.value;
+      });
+      return targets[0];
+    }
   },
-  FromFrostToFerocity:{//should be available to players now
+  FromFrostToFerocity:{//should be available to players now..and also enemies.  nice going old me.  Young me?  shit.  aaaaggeeesss..
     name:"FromFrostToFerocity",
     isValid:function(){//uses 'call' to set this to a card.  Returns true or false if that card could take this action
       if (this.tags.includes("Tapped")){return false;}
@@ -1674,6 +2258,10 @@ let tapLibrary={
       capZone.push(board[this.position.y+forward].splice(this.position.x, 1, false)[0]);
       board[this.position.y+forward][this.position.x]=board[this.position.y].splice(this.position.x, 1, false)[0];
       board[this.position.y+forward][this.position.x].position={y:this.position.y+forward, x:this.position.x};
+    },
+    estimateValue:function(){
+      return 0;
+      //suffocation, no breathing, this is a last resort.  should get a buff if its threatened for capture and undefended...though in 9/10 cases of that just capture the thing challenging you
     }
   },
 
@@ -1696,34 +2284,7 @@ let ci={
   },
 }
 
-//possible moves that can be made
-let actionList={
-  moveForward:function(){
-    //gets movement direction of card
-    //tests if movement is legal
-    //if yes, moves card into open space
-      //empties card's previous space (using splice probably best)
-      //returns true
-      //updates board
-    //if no, returns false
 
-  },
-  captureUnit:function(targetCell){
-    //checks if there is a unit in targetCell
-    //if no, return false
-    //if yes, test if this card can capture that unit due to statuses or due to position
-
-      //if no, return false
-      //if yes, move captured unit into captured zone
-        //move this unit into that units space
-        //empty this unit's original space
-        //return true
-  },
-  activateTapAbility:function(){
-    //test if this unit has a tap ability
-  }
-
-};
 
 let sceneLibrary={
 
@@ -2204,6 +2765,11 @@ let enemies={
 
 
         mentalMap.enemies.forEach((enemy)=>{
+
+          let tapAbility=enemy.getTapAbility();
+          let tapInfo={};
+          console.log(tapAbility);
+          //check moves
           enemy.moveRanges.forEach((move)=>{
 
             if (this.isMoveLegal(enemy, move)){
@@ -2211,12 +2777,13 @@ let enemies={
             }
           });
 
-          enemy.captureRanges.forEach((move)=>{
-            if (this.isCaptureLegal(enemy, move)){
+          //check caps
+          enemy.captureRanges.forEach((cap)=>{
+            if (this.isCaptureLegal(enemy, cap)){
               let actInfo={
                 startSpace:enemy.position,
-                endSpace:{x:enemy.position.x+move.x, y:enemy.position.y+move.y},
-                cappedSpace:{x:enemy.position.x+move.x, y:enemy.position.y+move.y} //TODO change code to allow cappedspace and endspace to be different
+                endSpace:{x:enemy.position.x+cap.x, y:enemy.position.y+cap.y},
+                cappedSpace:{x:enemy.position.x+cap.x, y:enemy.position.y+cap.y} //TODO change code to allow cappedspace and endspace to be different
               };
 
               possibleActions.push(new Construct.Action("capture", actInfo));
@@ -2226,6 +2793,18 @@ let enemies={
               }
             }
           });
+
+          //check taps
+          if (tapAbility){
+            tapAbility=tapLibrary[tapAbility.name];
+            if(tapAbility.isValid.call(enemy)){
+              tapInfo.ability=tapAbility;
+              tapInfo.user=enemy;
+              console.log(tapInfo);
+              possibleActions.push(new Construct.Action("ability", tapInfo));
+            };
+          }
+
         });
 
         possibleActions.forEach((act)=>{
@@ -2235,12 +2814,33 @@ let enemies={
           else if(act.actionType=="capture"){
             act.actValue=this.judgeCaptureValue(act);
           }
+          else if(act.actionType=="ability"){
+            act.actValue=this.judgeAbilityValue(act);
+            console.log(act);
+
+            if(act.actionInfo.ability.passTurn===false){
+              act.holdTurn=true;
+            }else{
+              act.holdTurn=false;
+            }
+          }
         });
 
         if (!possibleActions.length){
 
           return false;
         }else{
+          possibleActions.sort(function(a, b){
+            let dieRoll=ci.dieRoll(2);
+            switch (dieRoll){
+              case 1:
+                return -1
+                break;
+              case 2:
+                return 1;
+                break;
+            }
+          });
           possibleActions.sort(function(a,b){
             return b.actValue-a.actValue;
           });
@@ -2304,7 +2904,21 @@ let enemies={
         value+=25;
       }
       return value;
-    }
+    },
+    judgeAbilityValue:function(action){
+
+        let user=action.actionInfo.user;
+        let ability=action.actionInfo.ability;
+
+        let value=ability.estimateValue.call(user);
+        if (isNaN(value)){
+          console.log(value);
+          value=-9999;
+        }else{
+        }
+
+        return value;
+      },
   },
 
 

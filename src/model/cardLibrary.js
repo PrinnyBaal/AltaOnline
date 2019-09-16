@@ -11,7 +11,7 @@ DoujahRaze:{
   cardArt:"images/altaCards/DoujahRaze.png",
   hasPassive:true,
   hasTap:true,
-  abilities:[{name:"Illusionist", type:"Passive"}, {name:"ManyFaced", type:"Tap"}],
+  abilities:[{name:"Illusionist", type:"Passive"}, {name:"ManyFaced", type:"Passive"}],
 },
 
 KnightOfAmoracchius:{
