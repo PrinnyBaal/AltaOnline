@@ -958,7 +958,7 @@ let gamePlay={
     let board=zones.gameBoard.board;
     try{
        targetCell=board[y][x];
-    }catch{
+    }catch(error){
 
       return;
     }
