@@ -4,6 +4,9 @@
   <link rel="shortcut icon" href="">
   <meta charset="UTF-8">
   <title>Alta Online</title>
+  <!-- Pubnub -->
+  <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.27.4.min.js"></script>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="Styling/sample.css">
@@ -42,6 +45,7 @@
   </div>
 
   </div>
+
   <div id="deckbuilderScreen" class="hidden">
     <div id="deckTitle">Your Deck (Click cards to remove) <button onclick="deckBuilder.exitDeckBuilder()"> Done Building</button></div>
     <div id="deckZone" class="hoverFlow"></div>
@@ -59,6 +63,7 @@
     </div>
 
   </div>
+
   <div  class="container-fluid pt-2" id="shopBanner">
     <div class="row  h-75" >
       <div class="col-1 offset-1" id="bannerImage">
@@ -75,10 +80,12 @@
     </div>
 
   </div>
+
   <div id="gameRow">
     <div id="cardDisplay"><img id="hoveredCard"></img></div>
     <div id="battleLog"></div>
     <div id="canvasContainer"></div>
+
     <div id="handsContainer" class="container">
 
       <div id="enemyZones" class="row">
@@ -102,6 +109,28 @@
 
   </div>
   <div id="playerHandRow" class="hidden"></div>
+  <div id="onlineSegment">
+    <div id="settingsZone">
+      <label> Chatting as: <input onchange="Lobby.changeUsername(event.target.value)" type="text"></label>
+      <label> <button onclick="Lobby.createRoom()">Start  New Table</button> <input id="usermadeRoom" type="text"></label>
+      <label> <button onclick="Lobby.joinRoom()">Join By Table Name</button> <input id="joinRoomInput" type="text"></label>
+    </div>
+    <div id="chatZone">
+      <h3><b>Table:</b><span id="roomTitle">N/A</span></h3>
+      <div id="chatBox">
+        <div><hr></div>
+        <div class="chatMessage"><b>Player:</b>Behold, it is I, the king of the rats and lord of the lower lands!  All shall bow before my almight powwweeeerrrrrrrr!  Ye, ye, ye, ye,</div>
+        <div><hr></div>
+        <div class="chatMessage"><b>Opnt:</b>K. Cool.</div>
+        <div><hr></div>
+      </div>
+      <strong>Chat:</strong> <input style="width:80%" onkeypress="chat.sendChat(event)" id="update-text" type="input" placeholder="Chat across the table..."/>
+
+
+    </div>
+  </div>
+
+
 
   <button  onclick="resetStorage()">Reset To Default</button>
   <!-- <div id="footer" style="background-color:brown" class="container-fluid">

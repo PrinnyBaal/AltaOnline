@@ -10,6 +10,17 @@ let starterDeck=["LumiMaarit", "MiranScout", "AltambranDuelist", "PhilomanSchola
 // let validEnemyCommanders=["DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
 let validEnemyCommanders=["KnightOfAmoracchius", "DoujahRaze", "LuminaOfPhiloma", "CyrusMartingo", "HandsomeJack", "RaiDuMorne"];
 
+let username="Default";
+let roomName=false;
+
+const clientUUID = PubNub.generateUUID();
+const pubnub = new PubNub({
+  // replace the following with your own publish and subscribe keys
+  publishKey: 'pub-c-a77f1c5f-9606-4ffb-802f-5e341f2ec026',
+  subscribeKey: 'sub-c-edc412de-b4d4-11ea-af7b-9a67fd50bac3',
+  uuid: clientUUID
+});
+
 
 let starterProfile={
   name:"Player",
@@ -2998,33 +3009,33 @@ let data={
 if (localStorage.getItem("playerProfile") === null) {
 
   localStorage.setItem('playerProfile', JSON.stringify(starterProfile));
-  let player=window.prompt("Aster.  Cyrus.  Lumi.  Which are you?  Or are you another soul entirely?");
-  let playerProfile=data.getProfile();
+  // let player=window.prompt("Aster.  Cyrus.  Lumi.  Which are you?  Or are you another soul entirely?");
+  // let playerProfile=data.getProfile();
+  //
+  // playerProfile.name=player;
+  // data.setProfile(playerProfile);
+  // data.sceneStats.activeScene="firstMeet";
+  //
+  // switch (player.toLowerCase()){
+  //   case "aster":
+  //     alert("It is a rare pleasure to have a first meetng with a treasured companion.  I am glad to meet you again for the first time, my dear host.");
+  //     break;
+  //   case "cyrus":
+  //     alert("Greetings,  once-Knight.  Shall I wish you good luck in your endeavors?");
+  //     break;
+  //   case "lumi":
+  //     alert("Greetings, tongue-mage.  Shall I prepare myself for a spectacle?");
+  //     break;
+  //   default:
+  //     alert("Another soul than.  Or perhaps I misheard?  Regardless I shall prepare your place ahead.");
+  //     break;
+  // }
 
-  playerProfile.name=player;
-  data.setProfile(playerProfile);
-  data.sceneStats.activeScene="firstMeet";
-
-  switch (player.toLowerCase()){
-    case "aster":
-      alert("It is a rare pleasure to have a first meetng with a treasured companion.  I am glad to meet you again for the first time, my dear host.");
-      break;
-    case "cyrus":
-      alert("Greetings,  once-Knight.  Shall I wish you good luck in your endeavors?");
-      break;
-    case "lumi":
-      alert("Greetings, tongue-mage.  Shall I prepare myself for a spectacle?");
-      break;
-    default:
-      alert("Another soul than.  Or perhaps I misheard?  Regardless I shall prepare your place ahead.");
-      break;
-  }
-
-  alert("A word of warning.  A possible reality is not without value, and your soul will surely grow from the experience.  But that value is a fleeting thing until you are able to both awake from your dream and keep a hand clutched around what you have gained here.");
-
-  if (player.toLowerCase()=="aster"){
-    alert("Please try to relax my Dear Host.  We will not be as entwined here as we often are but I will attempt to reach out when I can.");
-  }else{alert("I will...attempt...to watch over you, as my Dear Host would wish of me.");}
+  // alert("A word of warning.  A possible reality is not without value, and your soul will surely grow from the experience.  But that value is a fleeting thing until you are able to both awake from your dream and keep a hand clutched around what you have gained here.");
+  //
+  // if (player.toLowerCase()=="aster"){
+  //   alert("Please try to relax my Dear Host.  We will not be as entwined here as we often are but I will attempt to reach out when I can.");
+  // }else{alert("I will...attempt...to watch over you, as my Dear Host would wish of me.");}
 }
 
 

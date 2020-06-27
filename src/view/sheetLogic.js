@@ -1170,6 +1170,8 @@ let gameUI={
 
 let shop={
   openShop:function(){
+    alert("Shop is currently undergoing renovations...sorry!");
+    return;
     data.sceneStats.dialogueIndex=0;
     shop.updateScene();
     $("#higgsShop").removeClass("hidden");
@@ -1285,7 +1287,74 @@ let shop={
   }
 };
 
+let chat={
+  sendChat:(event)=>{
+    if (event.keyCode===13){
+      chat.submitUpdate(username,event.target.value);
 
+      event.target.value="";
+    }
+  },
+  submitUpdate:(anEntry, anUpdate)=>{
+      if (!roomName){ alert("You must create or join a room in order to chat."); return}
+      pubnub.publish({
+        channel : roomName,
+        message : {'entry' : anEntry, 'update' : anUpdate}
+      },
+      function(status, response) {
+        if (status.error) {
+          console.log(status)
+        }
+        else {
+          chat.displayMessage('[PUBLISH: sent]',
+            'timetoken: ' + response.timetoken);
+
+          //updateText.value="";
+        }
+      });
+    },
+    displayMessage:(messageType, aMessage)=>{
+      let pmessage = document.createElement('p');
+      let br = document.createElement('br');
+
+
+      pmessage.appendChild(document.createTextNode(messageType));
+      pmessage.appendChild(br);
+      pmessage.appendChild(document.createTextNode(aMessage));
+      $("#chatBox").append(pmessage);
+    }
+
+
+};
+
+let Lobby={
+  changeRoom:(newRoom)=>{
+    let roomTitle=document.getElementById('roomTitle');
+    roomName=newRoom;
+    roomTitle.innerText=newRoom;
+
+  },
+  createRoom:()=>{
+    pubnub.unsubscribeAll();
+    console.log(document.getElementById('usermadeRoom'));
+    Lobby.changeRoom(document.getElementById('usermadeRoom').value);
+    pubnub.subscribe({
+      channels: [document.getElementById('usermadeRoom').value],
+      withPresence: true
+    });
+  },
+  joinRoom:()=>{
+    pubnub.unsubscribeAll();
+    Lobby.changeRoom(document.getElementById('joinRoomInput').value);
+    pubnub.subscribe({
+      channels: [document.getElementById('joinRoomInput').value],
+      withPresence: true
+    });
+  },
+  changeUsername:(newName)=>{
+    username=newName;
+  }
+}
 
 let soundControl={
 
@@ -1328,13 +1397,37 @@ let soundControl={
 
 sheetProj.view.sheetLogic = {
   setupUserInterface: function () {
-    if (data.sceneStats.activeScene=="firstMeet"){
-      shop.openShop();
-    }
+    // if (data.sceneStats.activeScene=="firstMeet"){
+    //   shop.openShop();
+    // }
+   eventHandler.announce("login");
 
     assetCache.fillCache();
     enableDragging();
-    eventHandler.announce("login");
+    pubnub.addListener({
+      message: function(event) {
+        chat.displayMessage('[MESSAGE: received]',
+          event.message.entry + ': ' + event.message.update);
+      },
+      presence: function(event) {
+        chat.displayMessage('[PRESENCE: ' + event.action + ']',
+          'uuid: ' + event.uuid + ', channel: ' + event.channel);
+      },
+      status: function(event) {
+        chat.displayMessage('[STATUS: ' + event.category + ']',
+          'connected to channels: ' + event.affectedChannels);
+
+        if (event.category == 'PNConnectedCategory') {
+          chat.submitUpdate(username, 'Harmless.');
+        }
+      }
+    });
+
+
+
+
+
+
 
     }
 };
