@@ -16,8 +16,7 @@ let roomName=false;
 const clientUUID = PubNub.generateUUID();
 const pubnub = new PubNub({
   // replace the following with your own publish and subscribe keys
-  publishKey: 'pub-c-a77f1c5f-9606-4ffb-802f-5e341f2ec026',
-  subscribeKey: 'sub-c-edc412de-b4d4-11ea-af7b-9a67fd50bac3',
+                       
   uuid: clientUUID
 });
 
